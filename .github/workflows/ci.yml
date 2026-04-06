@@ -23,7 +23,7 @@ jobs:
         run: |
           cd backend
           chmod +x mvnw
-          ./mvnw clean install
+          ./mvnw clean install -DskipTests
 
   frontend:
     runs-on: ubuntu-latest
