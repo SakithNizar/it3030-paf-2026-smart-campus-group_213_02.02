@@ -20,12 +20,24 @@ export default function ResourceList() {
   };
 
   // Availability logic
-  const isAvailable = (r) => {
-    const now = new Date();
-    const currentTime = now.getHours() + ":" + now.getMinutes();
+const isAvailable = (r) => {
+  if (!r.availableFrom || !r.availableTo) return false;
 
-    return currentTime >= r.availableFrom && currentTime <= r.availableTo;
-  };
+  const now = new Date();
+
+  // Convert current time to minutes
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  // Convert availableFrom (HH:mm) to minutes
+  const [fromHour, fromMin] = r.availableFrom.split(":").map(Number);
+  const fromMinutes = fromHour * 60 + fromMin;
+
+  // Convert availableTo (HH:mm) to minutes
+  const [toHour, toMin] = r.availableTo.split(":").map(Number);
+  const toMinutes = toHour * 60 + toMin;
+
+  return currentMinutes >= fromMinutes && currentMinutes <= toMinutes;
+};
 
   return (
     <div>
@@ -70,8 +82,12 @@ export default function ResourceList() {
                   <td>{r.location}</td>
 
                   {/* 🟢 Availability */}
-                  <td>
-                    {isAvailable(r) ? "🟢 Available" : "🔴 Closed"}
+                  <td style={{ fontWeight: "bold" }}>
+                   {r.status === "OUT_OF_SERVICE"
+                      ? "🚫 Out of Service"
+                     : isAvailable(r)
+                     ? "🟢 Available Now"
+                    : "🔴 Closed"}
                   </td>
 
                   <td>

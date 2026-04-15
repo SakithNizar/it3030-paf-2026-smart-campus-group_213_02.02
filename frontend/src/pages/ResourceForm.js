@@ -98,10 +98,16 @@ export default function ResourceForm({ refresh, selected, setSelected }) {
         />
 
         <select name="type" value={form.type} onChange={handleChange}>
-          <option value="ROOM">ROOM</option>
+          <option value="LECTURE_HALL">LECTURE_HALL</option>
           <option value="LAB">LAB</option>
           <option value="EQUIPMENT">EQUIPMENT</option>
         </select>
+
+        <select name="status" value={form.status} onChange={handleChange}>
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
+        </select>
+        
 
         <button type="submit">
           {form.id ? "Update Resource" : "Add Resource"}
