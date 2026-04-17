@@ -1,4 +1,4 @@
-package com.group213.backend.controllers;
+package com.group213.backend.controller;
 
 import com.group213.backend.model.Resource;
 import com.group213.backend.service.ResourceService;
