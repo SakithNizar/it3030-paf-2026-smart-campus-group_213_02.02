@@ -1,11 +1,11 @@
-
-import './App.css';
+import "./App.css";
+import ResourceList from "./pages/ResourceList";
 
 function App() {
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h1>Smart Campus System</h1>
-      <p>Frontend is running successfully 🚀</p>
+    <div className="container">
+      <h1>🏫 Smart Campus Resource Management</h1>
+      <ResourceList />
     </div>
   );
 }
