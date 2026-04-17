@@ -1,13 +1,14 @@
 import React from 'react';
-import './App.css';
+import "./App.css";
+import ResourceList from "./pages/ResourceList";
 import BookingManager from './components/BookingManager';
 
 function App() {
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h1>Smart Campus System</h1>
-      {/* Your new component is injected right here! */}
-      <BookingManager /> 
+    <div className="container">
+      <h1>🏫 Smart Campus Resource Management</h1>
+      <ResourceList />
+      <BookingManager />
     </div>
   );
 }
