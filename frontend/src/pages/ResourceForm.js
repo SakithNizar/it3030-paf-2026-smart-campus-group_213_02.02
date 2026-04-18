@@ -98,7 +98,7 @@ export default function ResourceForm({ refresh, selected, setSelected }) {
         />
 
         <select name="type" value={form.type} onChange={handleChange}>
-          <option value="LECTURE_HALL">LECTURE_HALL</option>
+          <option value="ROOM">ROOM</option>
           <option value="LAB">LAB</option>
           <option value="EQUIPMENT">EQUIPMENT</option>
         </select>
