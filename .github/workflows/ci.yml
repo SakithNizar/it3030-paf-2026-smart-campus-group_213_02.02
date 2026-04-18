@@ -2,7 +2,7 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, "feature/*" ]
   pull_request:
 
 jobs:
@@ -17,13 +17,13 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '20'
 
-      - name: Build Backend
+      - name: Build and Test Backend
         run: |
           cd backend
           chmod +x mvnw
-          ./mvnw clean install -DskipTests
+          ./mvnw clean test
 
   frontend:
     runs-on: ubuntu-latest
