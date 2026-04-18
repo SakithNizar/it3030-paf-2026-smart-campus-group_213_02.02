@@ -4,6 +4,7 @@ export default function BookingManager() {
     const [bookings, setBookings] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [isLoading, setIsLoading] = useState(false); // Added loading state
     
     // Hardcoded for testing. In a real app, you'd get this from your OAuth login!
     const testUserId = 1; 
@@ -42,6 +43,7 @@ export default function BookingManager() {
         e.preventDefault();
         setError('');
         setSuccess('');
+        setIsLoading(true); // Start loading spinner
 
         const payload = {
             ...formData,
@@ -69,6 +71,8 @@ export default function BookingManager() {
             }
         } catch (err) {
             setError("Failed to connect to the server.");
+        } finally {
+            setIsLoading(false); // Stop loading no matter what happens
         }
     };
 
@@ -88,8 +92,22 @@ export default function BookingManager() {
                 <input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} required />
                 <input type="text" name="purpose" placeholder="Purpose of booking" value={formData.purpose} onChange={handleInputChange} required />
                 <input type="number" name="expectedAttendees" placeholder="Expected Attendees" value={formData.expectedAttendees} onChange={handleInputChange} required />
-                <button type="submit" style={{ padding: '10px', backgroundColor: '#007BFF', color: 'white', border: 'none', cursor: 'pointer' }}>
-                    Request Booking
+                
+                {/* Updated Button */}
+                <button 
+                    type="submit" 
+                    disabled={isLoading}
+                    style={{ 
+                        padding: '10px', 
+                        backgroundColor: isLoading ? '#6c757d' : '#007BFF', 
+                        color: 'white', 
+                        border: 'none', 
+                        cursor: isLoading ? 'not-allowed' : 'pointer',
+                        opacity: isLoading ? 0.7 : 1,
+                        transition: 'background-color 0.2s ease'
+                    }}
+                >
+                    {isLoading ? 'Booking...' : 'Request Booking'}
                 </button>
             </form>
 
