@@ -4,6 +4,7 @@ import { getResources } from "../api/resourceApi";
 export default function UserResourceView() {
   const [resources, setResources] = useState([]);
   const [search, setSearch] = useState("");
+  const [selectedResource, setSelectedResource] = useState(null);
 
   useEffect(() => {
     getResources().then(res => setResources(res.data));
@@ -40,6 +41,7 @@ export default function UserResourceView() {
         <table>
           <thead>
             <tr>
+              <th>ID</th>
               <th>Name</th>
               <th>Type</th>
               <th>Capacity</th>
@@ -55,6 +57,7 @@ export default function UserResourceView() {
               )
               .map(r => (
                 <tr key={r.id}>
+                  <td>{r.id}</td>
                   <td>{r.name}</td>
                   <td>{r.type}</td>
                   <td>{r.capacity}</td>
@@ -66,6 +69,11 @@ export default function UserResourceView() {
                       : isAvailable(r)
                       ? "🟢 Available"
                       : "🔴 Closed"}
+                  </td>
+                  <td>
+                    <button onClick={() => setSelectedResource(r)}>
+                    Select
+                    </button>
                   </td>
                 </tr>
               ))}
