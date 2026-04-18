@@ -4,9 +4,8 @@ export default function BookingManager() {
     const [bookings, setBookings] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [isLoading, setIsLoading] = useState(false); // Added loading state
+    const [isLoading, setIsLoading] = useState(false);
     
-    // Hardcoded for testing. In a real app, you'd get this from your OAuth login!
     const testUserId = 1; 
 
     const [formData, setFormData] = useState({
@@ -18,7 +17,6 @@ export default function BookingManager() {
         expectedAttendees: ''
     });
 
-    // Fetch user bookings on load
     useEffect(() => {
         fetchBookings();
     }, []);
@@ -43,7 +41,7 @@ export default function BookingManager() {
         e.preventDefault();
         setError('');
         setSuccess('');
-        setIsLoading(true); // Start loading spinner
+        setIsLoading(true);
 
         const payload = {
             ...formData,
@@ -64,65 +62,137 @@ export default function BookingManager() {
 
             if (response.ok) {
                 setSuccess("Booking requested successfully!");
-                fetchBookings(); // Refresh the list
-                setFormData({ resourceId: '', bookingDate: '', startTime: '', endTime: '', purpose: '', expectedAttendees: '' }); // Reset form
+                fetchBookings(); 
+                setFormData({ resourceId: '', bookingDate: '', startTime: '', endTime: '', purpose: '', expectedAttendees: '' });
             } else {
                 setError("An error occurred while booking.");
             }
         } catch (err) {
             setError("Failed to connect to the server.");
         } finally {
-            setIsLoading(false); // Stop loading no matter what happens
+            setIsLoading(false);
         }
     };
 
+    // Shared input style for consistency
+    const inputStyle = {
+        width: '100%',
+        padding: '12px 15px',
+        border: '1px solid #e0e0e0',
+        borderRadius: '8px',
+        fontSize: '15px',
+        boxSizing: 'border-box',
+        outline: 'none',
+        transition: 'border-color 0.2s',
+        backgroundColor: '#f8f9fa'
+    };
+
     return (
-        <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-            <h2>Smart Campus - Booking Manager</h2>
+        <div style={{ padding: '40px 20px', maxWidth: '700px', margin: '0 auto', fontFamily: "'Inter', '-apple-system', sans-serif", color: '#333' }}>
+            
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#1a1a1a', margin: '0 0 8px 0' }}>Booking Manager</h2>
+                <p style={{ color: '#6c757d', margin: 0, fontSize: '16px' }}>Reserve campus resources and manage your schedule</p>
+            </div>
 
-            {/* Notifications */}
-            {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
-            {success && <div style={{ color: 'green', marginBottom: '10px' }}>{success}</div>}
-
-            {/* Booking Form */}
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '30px' }}>
-                <input type="number" name="resourceId" placeholder="Resource ID (e.g., 1)" value={formData.resourceId} onChange={handleInputChange} required />
-                <input type="date" name="bookingDate" value={formData.bookingDate} onChange={handleInputChange} required />
-                <input type="time" name="startTime" value={formData.startTime} onChange={handleInputChange} required />
-                <input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} required />
-                <input type="text" name="purpose" placeholder="Purpose of booking" value={formData.purpose} onChange={handleInputChange} required />
-                <input type="number" name="expectedAttendees" placeholder="Expected Attendees" value={formData.expectedAttendees} onChange={handleInputChange} required />
+            {/* Form Card */}
+            <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', marginBottom: '40px' }}>
                 
-                {/* Updated Button */}
-                <button 
-                    type="submit" 
-                    disabled={isLoading}
-                    style={{ 
-                        padding: '10px', 
-                        backgroundColor: isLoading ? '#6c757d' : '#007BFF', 
-                        color: 'white', 
-                        border: 'none', 
-                        cursor: isLoading ? 'not-allowed' : 'pointer',
-                        opacity: isLoading ? 0.7 : 1,
-                        transition: 'background-color 0.2s ease'
-                    }}
-                >
-                    {isLoading ? 'Booking...' : 'Request Booking'}
-                </button>
-            </form>
+                {/* Notifications */}
+                {error && <div style={{ backgroundColor: '#fff1f0', color: '#d93025', padding: '12px', borderRadius: '8px', marginBottom: '20px', borderLeft: '4px solid #d93025' }}>{error}</div>}
+                {success && <div style={{ backgroundColor: '#e6f4ea', color: '#1e8e3e', padding: '12px', borderRadius: '8px', marginBottom: '20px', borderLeft: '4px solid #1e8e3e' }}>{success}</div>}
+
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    
+                    {/* Grid Layout for Date & Resource */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#4a4a4a' }}>Resource ID</label>
+                            <input type="number" name="resourceId" placeholder="e.g., 1" value={formData.resourceId} onChange={handleInputChange} required style={inputStyle} />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#4a4a4a' }}>Date</label>
+                            <input type="date" name="bookingDate" value={formData.bookingDate} onChange={handleInputChange} required style={inputStyle} />
+                        </div>
+                    </div>
+
+                    {/* Grid Layout for Times */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#4a4a4a' }}>Start Time</label>
+                            <input type="time" name="startTime" value={formData.startTime} onChange={handleInputChange} required style={inputStyle} />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#4a4a4a' }}>End Time</label>
+                            <input type="time" name="endTime" value={formData.endTime} onChange={handleInputChange} required style={inputStyle} />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#4a4a4a' }}>Purpose</label>
+                        <input type="text" name="purpose" placeholder="e.g., Group Project Meeting" value={formData.purpose} onChange={handleInputChange} required style={inputStyle} />
+                    </div>
+
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#4a4a4a' }}>Expected Attendees</label>
+                        <input type="number" name="expectedAttendees" placeholder="How many people?" value={formData.expectedAttendees} onChange={handleInputChange} required style={inputStyle} />
+                    </div>
+                    
+                    <button 
+                        type="submit" 
+                        disabled={isLoading}
+                        style={{ 
+                            marginTop: '10px',
+                            padding: '14px', 
+                            backgroundColor: isLoading ? '#a0cfff' : '#0061f2', 
+                            color: 'white', 
+                            border: 'none', 
+                            borderRadius: '8px',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: isLoading ? 'none' : '0 4px 12px rgba(0, 97, 242, 0.2)'
+                        }}
+                    >
+                        {isLoading ? 'Processing...' : 'Request Booking'}
+                    </button>
+                </form>
+            </div>
 
             {/* Bookings List */}
-            <h3>Your Recent Bookings</h3>
-            {bookings.length === 0 ? <p>No bookings found.</p> : (
-                <ul style={{ listStyleType: 'none', padding: 0 }}>
-                    {bookings.map((b) => (
-                        <li key={b.id} style={{ border: '1px solid #ddd', padding: '10px', margin: '10px 0', borderRadius: '5px' }}>
-                            <strong>Resource {b.resourceId}</strong> on {b.bookingDate} ({b.startTime} - {b.endTime}) <br/>
-                            Status: <span style={{ fontWeight: 'bold', color: b.status === 'PENDING' ? 'orange' : 'black' }}>{b.status}</span>
-                        </li>
-                    ))}
-                </ul>
-            )}
+            <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+                <h3 style={{ fontSize: '20px', margin: '0 0 20px 0', borderBottom: '2px solid #f0f0f0', paddingBottom: '10px' }}>Your Recent Bookings</h3>
+                
+                {bookings.length === 0 ? (
+                    <p style={{ color: '#6c757d', textAlign: 'center', padding: '20px 0' }}>No bookings found. Create one above!</p>
+                ) : (
+                    <ul style={{ listStyleType: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        {bookings.map((b) => (
+                            <li key={b.id} style={{ border: '1px solid #f0f0f0', padding: '16px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fafafa' }}>
+                                <div>
+                                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1a1a', marginBottom: '4px' }}>Resource {b.resourceId}</div>
+                                    <div style={{ fontSize: '14px', color: '#666' }}>{b.bookingDate} • {b.startTime} - {b.endTime}</div>
+                                </div>
+                                
+                                {/* Status Badge */}
+                                <div style={{
+                                    padding: '6px 12px',
+                                    borderRadius: '20px',
+                                    fontSize: '12px',
+                                    fontWeight: '700',
+                                    letterSpacing: '0.5px',
+                                    backgroundColor: b.status === 'PENDING' ? '#fff3cd' : '#e6f4ea',
+                                    color: b.status === 'PENDING' ? '#856404' : '#1e8e3e'
+                                }}>
+                                    {b.status}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
         </div>
     );
 }
