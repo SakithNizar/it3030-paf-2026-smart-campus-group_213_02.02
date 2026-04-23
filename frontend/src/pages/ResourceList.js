@@ -60,6 +60,7 @@ const isAvailable = (r) => {
         <table>
           <thead>
             <tr>
+              <th>ID</th>
               <th>Name</th>
               <th>Type</th>
               <th>Capacity</th>
@@ -76,6 +77,7 @@ const isAvailable = (r) => {
               )
               .map(r => (
                 <tr key={r.id}>
+                  <td>{r.id}</td>
                   <td>{r.name}</td>
                   <td>{r.type}</td>
                   <td>{r.capacity}</td>

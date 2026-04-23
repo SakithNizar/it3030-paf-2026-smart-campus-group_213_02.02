@@ -4,74 +4,122 @@ import { getResources } from "../api/resourceApi";
 export default function UserResourceView() {
   const [resources, setResources] = useState([]);
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [onlyAvailable, setOnlyAvailable] = useState(false);
 
   useEffect(() => {
     getResources().then(res => setResources(res.data));
   }, []);
 
-  // Availability logic
-  const isAvailable = (r) => {
-    if (!r.availableFrom || !r.availableTo) return false;
+  // ⏱ Convert time
+  const getMinutes = (time) => {
+    const [h, m] = time.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  // 🧠 Smart availability
+  const getAvailability = (r) => {
+    if (!r.availableFrom || !r.availableTo) {
+      return { text: "🔴 Closed", color: "red" };
+    }
+
+    if (r.status === "OUT_OF_SERVICE") {
+      return { text: "🚫 Out of Service", color: "gray" };
+    }
 
     const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const current = now.getHours() * 60 + now.getMinutes();
 
-    const [fh, fm] = r.availableFrom.split(":").map(Number);
-    const [th, tm] = r.availableTo.split(":").map(Number);
+    const from = getMinutes(r.availableFrom);
+    const to = getMinutes(r.availableTo);
 
-    const from = fh * 60 + fm;
-    const to = th * 60 + tm;
+    if (current < from) {
+      return { text: `🕒 Opens at ${r.availableFrom}`, color: "orange" };
+    }
 
-    return currentMinutes >= from && currentMinutes <= to;
+    if (current > to) {
+      return { text: "🔴 Closed", color: "red" };
+    }
+
+    const remaining = to - current;
+    const hours = Math.floor(remaining / 60);
+    const mins = remaining % 60;
+
+    return {
+      text: `🟢 Available (${hours}h ${mins}m left)`,
+      color: "green"
+    };
   };
+
+  // 🔍 Filtering
+  const filtered = resources.filter(r => {
+    return (
+      r.location.toLowerCase().includes(search.toLowerCase()) &&
+      (typeFilter === "" || r.type === typeFilter) &&
+      (!onlyAvailable || getAvailability(r).text.includes("Available"))
+    );
+  });
 
   return (
     <div className="container">
-      <h1>📚 Available Resources</h1>
+      <h1> Resources</h1>
 
-      {/* 🔍 Search */}
-      <input
-        placeholder="Search by location..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      {/* 🔍 Filters */}
+      <div style={{ marginBottom: "15px" }}>
+        <input
+          placeholder="Search location..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-      <div className="card">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Capacity</th>
-              <th>Location</th>
-              <th>Status</th>
-            </tr>
-          </thead>
+        <select onChange={(e) => setTypeFilter(e.target.value)}>
+          <option value="">All Types</option>
+          <option value="LAB">LAB</option>
+          <option value="ROOM">ROOM</option>
+          <option value="EQUIPMENT">EQUIPMENT</option>
+        </select>
 
-          <tbody>
-            {resources
-              .filter(r =>
-                r.location.toLowerCase().includes(search.toLowerCase())
-              )
-              .map(r => (
-                <tr key={r.id}>
-                  <td>{r.name}</td>
-                  <td>{r.type}</td>
-                  <td>{r.capacity}</td>
-                  <td>{r.location}</td>
-
-                  <td style={{ fontWeight: "bold" }}>
-                    {r.status === "OUT_OF_SERVICE"
-                      ? "🚫 Out of Service"
-                      : isAvailable(r)
-                      ? "🟢 Available"
-                      : "🔴 Closed"}
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+        <label style={{ marginLeft: "10px" }}>
+          <input
+            type="checkbox"
+            onChange={() => setOnlyAvailable(!onlyAvailable)}
+          />
+          Available Now
+        </label>
       </div>
+
+      {/* 📊 TABLE */}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Capacity</th>
+            <th>Location</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {filtered.map(r => {
+            const status = getAvailability(r);
+            return (
+              <tr key={r.id}>
+                <td>{r.id}</td>
+                <td>{r.name}</td>
+                <td>{r.type}</td>
+                <td>{r.capacity}</td>
+                <td>{r.location}</td>
+
+                <td style={{ color: status.color, fontWeight: "bold" }}>
+                  {status.text}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
