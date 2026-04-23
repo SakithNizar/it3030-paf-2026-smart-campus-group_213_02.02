@@ -43,6 +43,24 @@ export default function BookingManager() {
         setSuccess('');
         setIsLoading(true);
 
+        // --- NEW: Time-Travel Validation ---
+        const selectedDate = new Date(formData.bookingDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset today's time to midnight for accurate date comparison
+
+        if (selectedDate < today) {
+            setError("You cannot book a resource in the past.");
+            setIsLoading(false);
+            return;
+        }
+
+        if (formData.endTime <= formData.startTime) {
+            setError("End time must be strictly after the start time.");
+            setIsLoading(false);
+            return;
+        }
+        // ------------------------------------
+
         const payload = {
             ...formData,
             userId: testUserId
