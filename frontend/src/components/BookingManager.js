@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function BookingManager() {
+    const { user, token } = useAuth();
     const [bookings, setBookings] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    
-    const testUserId = 1; 
 
     const [formData, setFormData] = useState({
         resourceId: '',
@@ -22,8 +22,11 @@ export default function BookingManager() {
     }, []);
 
     const fetchBookings = async () => {
+        if (!user) return;
         try {
-            const response = await fetch(`http://localhost:8080/api/bookings/user/${testUserId}`);
+            const response = await fetch(`http://localhost:8080/api/bookings/user/${user.userId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             if (response.ok) {
                 const data = await response.json();
                 setBookings(data);
@@ -45,13 +48,16 @@ export default function BookingManager() {
 
         const payload = {
             ...formData,
-            userId: testUserId
+            userId: user.userId
         };
 
         try {
             const response = await fetch('http://localhost:8080/api/bookings', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify(payload)
             });
 
