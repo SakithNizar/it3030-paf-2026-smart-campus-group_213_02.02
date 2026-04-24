@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export default function BookingManager() {
@@ -17,11 +17,7 @@ export default function BookingManager() {
         expectedAttendees: ''
     });
 
-    useEffect(() => {
-        fetchBookings();
-    }, []);
-
-    const fetchBookings = async () => {
+    const fetchBookings = useCallback(async () => {
         if (!user) return;
         try {
             const response = await fetch(`http://localhost:8080/api/bookings/user/${user.userId}`, {
@@ -34,7 +30,11 @@ export default function BookingManager() {
         } catch (err) {
             console.error("Failed to fetch bookings", err);
         }
-    };
+    }, [user, token]);
+
+    useEffect(() => {
+        fetchBookings();
+    }, [fetchBookings]);
 
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });

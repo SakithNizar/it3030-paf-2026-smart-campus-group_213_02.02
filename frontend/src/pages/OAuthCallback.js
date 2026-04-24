@@ -20,7 +20,7 @@ export default function OAuthCallback() {
         } else {
             navigate('/login', { replace: true });
         }
-    }, []);
+    }, [login, navigate, searchParams]);
 
     return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
