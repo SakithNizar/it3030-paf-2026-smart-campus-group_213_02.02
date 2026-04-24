@@ -68,93 +68,91 @@ export default function ResourceForm({ refresh, selected, setSelected }) {
     });
   };
 
+  const fieldStyle = {
+    width: '100%',
+    padding: '9px 12px',
+    border: '1px solid #E5E7EB',
+    borderRadius: 8,
+    fontSize: 14,
+    color: '#374151',
+    outline: 'none',
+    marginBottom: 14,
+    display: 'block',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: 12,
+    fontWeight: 600,
+    color: '#374151',
+    marginBottom: 4,
+  };
+
   return (
-    <div className="card">
-      <h2>{form.id ? "Edit Resource" : "Add Resource"}</h2>
+    <form onSubmit={handleSubmit}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
+        <div>
+          <label style={labelStyle}>Name *</label>
+          <input name="name" placeholder="Resource name" value={form.name} onChange={handleChange} required style={fieldStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Capacity *</label>
+          <input name="capacity" placeholder="e.g. 30" value={form.capacity} onChange={handleChange} required style={fieldStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Location *</label>
+          <input name="location" placeholder="Building / Room no." value={form.location} onChange={handleChange} required style={fieldStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Type</label>
+          <select name="type" value={form.type} onChange={handleChange} style={fieldStyle}>
+            <option value="ROOM">ROOM</option>
+            <option value="LAB">LAB</option>
+            <option value="EQUIPMENT">EQUIPMENT</option>
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Available From *</label>
+          <input name="availableFrom" type="time" value={form.availableFrom} onChange={handleChange} required style={fieldStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Available To *</label>
+          <input name="availableTo" type="time" value={form.availableTo} onChange={handleChange} required style={fieldStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Status</label>
+          <select name="status" value={form.status} onChange={handleChange} style={fieldStyle}>
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Tags</label>
+          <input name="tags" placeholder="AC,WiFi,Projector" value={form.tags} onChange={handleChange} style={fieldStyle} />
+        </div>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          name="name"
-          placeholder="Name"
-          value={form.name}
-          onChange={handleChange}
-          required
-        />
+      <div>
+        <label style={labelStyle}>Image URL</label>
+        <input name="imageUrl" placeholder="https://..." value={form.imageUrl} onChange={handleChange} style={fieldStyle} />
+      </div>
 
-        <input
-          name="capacity"
-          placeholder="Capacity"
-          value={form.capacity}
-          onChange={handleChange}
-          required
-        />
+      {form.imageUrl && (
+        <img src={form.imageUrl} alt="preview" style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 8, marginBottom: 14 }} onError={e => (e.target.style.display = 'none')} />
+      )}
 
-        <input
-          name="location"
-          placeholder="Location"
-          value={form.location}
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          name="availableFrom"
-          type="time"
-          value={form.availableFrom}
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          name="availableTo"
-          type="time"
-          value={form.availableTo}
-          onChange={handleChange}
-          required
-        />
-
-        {/* 🖼️ Image URL */}
-        <input
-          name="imageUrl"
-          placeholder="Image URL"
-          value={form.imageUrl}
-          onChange={handleChange}
-        />
-
-        {/* 🏷️ Tags */}
-        <input
-          name="tags"
-          placeholder="Tags (e.g. AC,WiFi,Projector)"
-          value={form.tags}
-          onChange={handleChange}
-        />
-
-        {/* 👀 Image Preview */}
-        {form.imageUrl && (
-          <img
-            src={form.imageUrl}
-            alt="preview"
-            width="120"
-            style={{ marginTop: "10px", borderRadius: "5px" }}
-            onError={(e) => (e.target.style.display = "none")}
-          />
-        )}
-
-        <select name="type" value={form.type} onChange={handleChange}>
-          <option value="ROOM">ROOM</option>
-          <option value="LAB">LAB</option>
-          <option value="EQUIPMENT">EQUIPMENT</option>
-        </select>
-
-        <select name="status" value={form.status} onChange={handleChange}>
-          <option value="ACTIVE">ACTIVE</option>
-          <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
-        </select>
-
-        <button type="submit">
-          {form.id ? "Update Resource" : "Add Resource"}
-        </button>
-      </form>
-    </div>
+      <button
+        type="submit"
+        style={{
+          width: '100%', padding: '11px', border: 'none', borderRadius: 8,
+          backgroundColor: '#F47B20', color: 'white', fontSize: 14,
+          fontWeight: 600, cursor: 'pointer',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#E06710')}
+        onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#F47B20')}
+      >
+        {form.id ? "Update Resource" : "Add Resource"}
+      </button>
+    </form>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { loginUser } from '../api/authApi';
+import { registerUser } from '../api/authApi';
 
 const DecorativeShape = ({ style }) => (
   <div style={{ position: 'absolute', borderRadius: '50%', opacity: 0.12, ...style }} />
@@ -20,12 +20,14 @@ const inputStyle = {
   transition: 'border-color 0.2s',
 };
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
 
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -36,13 +38,23 @@ export default function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+
+    if (password !== confirm) {
+      setError('Passwords do not match.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await loginUser(email, password);
+      const res = await registerUser(name, email, password);
       login(res.data.token);
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -116,7 +128,7 @@ export default function LoginPage() {
         </div>
 
         <h2 style={{ color: 'white', fontSize: 26, fontWeight: 700, lineHeight: 1.3, margin: 0, textAlign: 'center', zIndex: 1, maxWidth: 320 }}>
-          Smart Campus — The All-in-One University Management Platform
+          Join Smart Campus — Manage your university experience in one place.
         </h2>
       </div>
 
@@ -130,18 +142,34 @@ export default function LoginPage() {
           justifyContent: 'center',
           alignItems: 'center',
           padding: '48px 60px',
+          overflowY: 'auto',
         }}
       >
         <div style={{ width: '100%', maxWidth: 380 }}>
           <h2 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: '0 0 8px', letterSpacing: -0.3 }}>
-            Sign in to Smart Campus
+            Create your account
           </h2>
           <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 28px' }}>
-            Welcome back! Please enter your details.
+            Fill in your details to get started.
           </p>
 
-          {/* Email / password form */}
           <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                Full name
+              </label>
+              <input
+                type="text"
+                placeholder="John Doe"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                required
+                style={inputStyle}
+                onFocus={e => (e.currentTarget.style.borderColor = '#1B3A72')}
+                onBlur={e => (e.currentTarget.style.borderColor = '#E5E7EB')}
+              />
+            </div>
+
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
                 Email address
@@ -158,15 +186,31 @@ export default function LoginPage() {
               />
             </div>
 
-            <div style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
                 Password
               </label>
               <input
                 type="password"
-                placeholder="••••••••"
+                placeholder="At least 6 characters"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                required
+                style={inputStyle}
+                onFocus={e => (e.currentTarget.style.borderColor = '#1B3A72')}
+                onBlur={e => (e.currentTarget.style.borderColor = '#E5E7EB')}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                Confirm password
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={confirm}
+                onChange={e => setConfirm(e.target.value)}
                 required
                 style={inputStyle}
                 onFocus={e => (e.currentTarget.style.borderColor = '#1B3A72')}
@@ -186,7 +230,7 @@ export default function LoginPage() {
               style={{
                 width: '100%',
                 padding: '13px 24px',
-                backgroundColor: loading ? '#9CA3AF' : '#1B3A72',
+                backgroundColor: loading ? '#9CA3AF' : '#F47B20',
                 border: 'none',
                 borderRadius: 10,
                 fontSize: 15,
@@ -196,55 +240,17 @@ export default function LoginPage() {
                 transition: 'background 0.2s',
                 boxSizing: 'border-box',
               }}
-              onMouseEnter={e => { if (!loading) e.currentTarget.style.backgroundColor = '#162f5e'; }}
-              onMouseLeave={e => { if (!loading) e.currentTarget.style.backgroundColor = '#1B3A72'; }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.backgroundColor = '#E06710'; }}
+              onMouseLeave={e => { if (!loading) e.currentTarget.style.backgroundColor = '#F47B20'; }}
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'Creating account...' : 'Create account'}
             </button>
           </form>
 
-          {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
-            <div style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
-            <span style={{ fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap' }}>or continue with</span>
-            <div style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
-          </div>
-
-          {/* Google OAuth button */}
-          <a
-            href="http://localhost:8080/oauth2/authorization/google"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 12,
-              width: '100%',
-              padding: '13px 24px',
-              backgroundColor: '#F47B20',
-              border: 'none',
-              borderRadius: 10,
-              fontSize: 15,
-              fontWeight: 600,
-              color: 'white',
-              textDecoration: 'none',
-              cursor: 'pointer',
-              transition: 'background 0.2s',
-              boxSizing: 'border-box',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#E06710')}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#F47B20')}
-          >
-            <svg width="20" height="20" viewBox="0 0 48 48">
-              <path fill="white" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 5.1 29.6 3 24 3 12.9 3 4 11.9 4 23s8.9 20 20 20c11 0 20-8 20-20 0-1.3-.2-2.7-.5-4z" />
-            </svg>
-            Sign in with Google
-          </a>
-
-          {/* Register link */}
           <p style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', margin: '20px 0 0' }}>
-            Don't have an account?{' '}
-            <Link to="/register" style={{ color: '#F47B20', fontWeight: 600, textDecoration: 'none' }}>
-              Create one
+            Already have an account?{' '}
+            <Link to="/login" style={{ color: '#1B3A72', fontWeight: 600, textDecoration: 'none' }}>
+              Sign in
             </Link>
           </p>
         </div>
