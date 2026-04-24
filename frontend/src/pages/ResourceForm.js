@@ -9,13 +9,18 @@ export default function ResourceForm({ refresh, selected, setSelected }) {
     location: "",
     status: "ACTIVE",
     availableFrom: "",
-    availableTo: ""
+    availableTo: "",
+    imageUrl: "",   // ✅ NEW
+    tags: ""        // ✅ NEW (string input)
   });
 
   // Load selected resource for edit
   useEffect(() => {
     if (selected) {
-      setForm(selected);
+      setForm({
+        ...selected,
+        tags: selected.tags ? selected.tags.join(",") : "" // convert array → string
+      });
     }
   }, [selected]);
 
@@ -26,14 +31,23 @@ export default function ResourceForm({ refresh, selected, setSelected }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // ✅ convert tags string → array
+    const payload = {
+      ...form,
+      capacity: Number(form.capacity),
+      tags: form.tags
+        ? form.tags.split(",").map(tag => tag.trim())
+        : []
+    };
+
     if (form.id) {
-      updateResource(form.id, form).then(() => {
+      updateResource(form.id, payload).then(() => {
         refresh();
         setSelected(null);
         resetForm();
       });
     } else {
-      createResource(form).then(() => {
+      createResource(payload).then(() => {
         refresh();
         resetForm();
       });
@@ -48,7 +62,9 @@ export default function ResourceForm({ refresh, selected, setSelected }) {
       location: "",
       status: "ACTIVE",
       availableFrom: "",
-      availableTo: ""
+      availableTo: "",
+      imageUrl: "",
+      tags: ""
     });
   };
 
@@ -97,6 +113,33 @@ export default function ResourceForm({ refresh, selected, setSelected }) {
           required
         />
 
+        {/* 🖼️ Image URL */}
+        <input
+          name="imageUrl"
+          placeholder="Image URL"
+          value={form.imageUrl}
+          onChange={handleChange}
+        />
+
+        {/* 🏷️ Tags */}
+        <input
+          name="tags"
+          placeholder="Tags (e.g. AC,WiFi,Projector)"
+          value={form.tags}
+          onChange={handleChange}
+        />
+
+        {/* 👀 Image Preview */}
+        {form.imageUrl && (
+          <img
+            src={form.imageUrl}
+            alt="preview"
+            width="120"
+            style={{ marginTop: "10px", borderRadius: "5px" }}
+            onError={(e) => (e.target.style.display = "none")}
+          />
+        )}
+
         <select name="type" value={form.type} onChange={handleChange}>
           <option value="ROOM">ROOM</option>
           <option value="LAB">LAB</option>
@@ -107,7 +150,6 @@ export default function ResourceForm({ refresh, selected, setSelected }) {
           <option value="ACTIVE">ACTIVE</option>
           <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
         </select>
-        
 
         <button type="submit">
           {form.id ? "Update Resource" : "Add Resource"}
