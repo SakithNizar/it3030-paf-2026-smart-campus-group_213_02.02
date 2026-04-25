@@ -14,6 +14,8 @@ import ResourceList from "./pages/ResourceList";
 import UserResourceView from "./pages/UserResourceView";
 import BookingsPage from "./pages/BookingsPage";
 import UsersPage from "./pages/UsersPage";
+import IncidentTicketPage from "./pages/IncidentTicketPage";
+import AdminDashboard from "./components/AdminDashboard";
 
 function PlaceholderPage({ title, description }) {
   return (
@@ -28,6 +30,11 @@ function PlaceholderPage({ title, description }) {
 function FacilitiesPage() {
   const { user } = useAuth();
   return user?.role === "ADMIN" ? <ResourceList /> : <UserResourceView />;
+}
+
+function IncidentPage() {
+  const { user } = useAuth();
+  return user?.role === "ADMIN" ? <AdminDashboard user={user} /> : <IncidentTicketPage user={user} />;
 }
 
 function App() {
@@ -46,7 +53,7 @@ function App() {
               <Route path="/dashboard"  element={<Dashboard />} />
               <Route path="/facilities" element={<FacilitiesPage />} />
               <Route path="/bookings"   element={<BookingsPage />} />
-              <Route path="/incidents"  element={<PlaceholderPage title="Incident Tickets" description="Being implemented by another team member — check back soon." />} />
+              <Route path="/incidents"  element={<IncidentPage />} />
               <Route path="/users"      element={<UsersPage />} />
             </Route>
           </Route>
