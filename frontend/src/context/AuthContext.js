@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 // Check token not expired
                 if (payload.exp * 1000 > Date.now()) {
-                    setUser({ userId: payload.userId, email: payload.sub, role: payload.role });
+                    setUser({ userId: payload.userId, email: payload.sub, role: payload.role, name: payload.name });
                 } else {
                     logout();
                 }
