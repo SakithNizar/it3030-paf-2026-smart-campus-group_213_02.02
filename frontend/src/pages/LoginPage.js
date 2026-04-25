@@ -1,54 +1,254 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { loginUser } from '../api/authApi';
+
+const DecorativeShape = ({ style }) => (
+  <div style={{ position: 'absolute', borderRadius: '50%', opacity: 0.12, ...style }} />
+);
+
+const inputStyle = {
+  width: '100%',
+  padding: '12px 14px',
+  border: '1.5px solid #E5E7EB',
+  borderRadius: 10,
+  fontSize: 14,
+  color: '#111827',
+  outline: 'none',
+  boxSizing: 'border-box',
+  fontFamily: "'Inter', sans-serif",
+  transition: 'border-color 0.2s',
+};
 
 export default function LoginPage() {
-    const { user } = useAuth();
-    const navigate = useNavigate();
+  const { user, login } = useAuth();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        if (user) {
-            navigate(user.role === 'ADMIN' ? '/admin' : '/user', { replace: true });
-        }
-    }, [user, navigate]);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    return (
-        <div style={{
-            display: 'flex', justifyContent: 'center', alignItems: 'center',
-            height: '100vh', backgroundColor: '#f0f4ff'
-        }}>
-            <div style={{
-                backgroundColor: 'white', padding: '48px 40px', borderRadius: '20px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.1)', textAlign: 'center', maxWidth: '400px', width: '100%'
-            }}>
-                <div style={{ fontSize: '48px', marginBottom: '12px' }}>🏫</div>
-                <h1 style={{ fontSize: '22px', fontWeight: '700', margin: '0 0 8px 0', color: '#1a1a1a' }}>
-                    Smart Campus Hub
-                </h1>
-                <p style={{ color: '#6c757d', marginBottom: '32px', fontSize: '15px' }}>
-                    Sign in to manage resources and bookings
-                </p>
+  useEffect(() => {
+    if (user) navigate('/dashboard', { replace: true });
+  }, [user, navigate]);
 
-                <a
-                    href="http://localhost:8080/oauth2/authorization/google"
-                    style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
-                        padding: '14px 24px', backgroundColor: '#fff', border: '2px solid #e0e0e0',
-                        borderRadius: '10px', fontSize: '15px', fontWeight: '600', color: '#333',
-                        textDecoration: 'none', cursor: 'pointer', transition: 'border-color 0.2s'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = '#4285F4'}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = '#e0e0e0'}
-                >
-                    <svg width="20" height="20" viewBox="0 0 48 48">
-                        <path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 5.1 29.6 3 24 3 12.9 3 4 11.9 4 23s8.9 20 20 20c11 0 20-8 20-20 0-1.3-.2-2.7-.5-4z"/>
-                        <path fill="#34A853" d="M6.3 14.7l7 5.1C15.2 16.1 19.3 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 5.1 29.6 3 24 3c-7.7 0-14.3 4.4-17.7 10.7z"/>
-                        <path fill="#FBBC05" d="M24 43c5.6 0 10.4-1.9 14.1-5.1l-6.5-5.3C29.6 34.3 26.9 35 24 35c-5.7 0-10.6-3.1-13.2-7.6l-7 5.4C7.5 38.5 15.2 43 24 43z"/>
-                        <path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-1 3-3.2 5.5-6.1 7.1l6.5 5.3C40.6 37.5 44 31.2 44 24c0-1.3-.2-2.7-.5-4z"/>
-                    </svg>
-                    Sign in with Google
-                </a>
-            </div>
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const res = await loginUser(email, password);
+      login(res.data.token);
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', fontFamily: "'Inter', sans-serif" }}>
+      {/* Left panel */}
+      <div
+        style={{
+          flex: '0 0 45%',
+          backgroundColor: '#1B3A72',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '48px 40px',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <DecorativeShape style={{ width: 320, height: 320, background: 'white', top: -60, right: -80 }} />
+        <DecorativeShape style={{ width: 200, height: 200, background: 'white', bottom: 40, left: -60 }} />
+        <DecorativeShape style={{ width: 120, height: 120, background: '#F47B20', top: '40%', right: -30 }} />
+
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 48, zIndex: 1 }}>
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <svg viewBox="0 0 40 40" fill="none" width="30" height="30">
+              <path d="M20 8L6 15l14 7 14-7-14-7z" fill="white" />
+              <path d="M13 19v6c0 2.5 3.1 4.5 7 4.5s7-2 7-4.5v-6l-7 3.5-7-3.5z" fill="rgba(255,255,255,0.8)" />
+            </svg>
+          </div>
+          <div style={{ color: 'white' }}>
+            <div style={{ fontWeight: 700, fontSize: 15, letterSpacing: 0.5 }}>smart</div>
+            <div style={{ fontWeight: 700, fontSize: 15, letterSpacing: 0.5 }}>campus</div>
+          </div>
         </div>
-    );
+
+        {/* Illustration */}
+        <div style={{ zIndex: 1, marginBottom: 40, width: '100%', maxWidth: 320, height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg viewBox="0 0 320 240" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%">
+            <rect x="80" y="170" width="160" height="18" rx="6" fill="#F47B20" />
+            <rect x="90" y="150" width="140" height="22" rx="6" fill="rgba(255,255,255,0.3)" />
+            <rect x="100" y="132" width="120" height="20" rx="6" fill="rgba(255,255,255,0.2)" />
+            <ellipse cx="160" cy="128" rx="22" ry="22" fill="rgba(255,255,255,0.25)" />
+            <circle cx="160" cy="108" r="16" fill="rgba(255,255,255,0.4)" />
+            <rect x="130" y="125" width="60" height="36" rx="4" fill="rgba(255,255,255,0.3)" />
+            <rect x="133" y="128" width="54" height="26" rx="2" fill="rgba(255,255,255,0.15)" />
+            <ellipse cx="60" cy="180" rx="20" ry="30" fill="rgba(255,255,255,0.1)" />
+            <ellipse cx="260" cy="185" rx="18" ry="25" fill="rgba(255,255,255,0.1)" />
+            <circle cx="245" cy="100" r="4" fill="rgba(255,255,255,0.3)" />
+            <circle cx="255" cy="115" r="3" fill="rgba(255,255,255,0.2)" />
+            <circle cx="70" cy="110" r="3" fill="rgba(255,255,255,0.3)" />
+            <circle cx="236" cy="75" r="12" fill="rgba(244,123,32,0.6)" />
+            <path d="M236 67v6M230 69l4 4M242 69l-4 4" stroke="white" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="75" cy="65" r="18" stroke="rgba(255,255,255,0.2)" strokeWidth="2" fill="none" />
+            <rect x="255" y="50" width="22" height="22" rx="3" stroke="rgba(255,255,255,0.2)" strokeWidth="2" fill="none" />
+            <line x1="95" y1="150" x2="100" y2="100" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
+          </svg>
+        </div>
+
+        <h2 style={{ color: 'white', fontSize: 26, fontWeight: 700, lineHeight: 1.3, margin: 0, textAlign: 'center', zIndex: 1, maxWidth: 320 }}>
+          Smart Campus — The All-in-One University Management Platform
+        </h2>
+      </div>
+
+      {/* Right panel */}
+      <div
+        style={{
+          flex: 1,
+          backgroundColor: 'white',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '48px 60px',
+        }}
+      >
+        <div style={{ width: '100%', maxWidth: 380 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: '0 0 8px', letterSpacing: -0.3 }}>
+            Sign in to Smart Campus
+          </h2>
+          <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 28px' }}>
+            Welcome back! Please enter your details.
+          </p>
+
+          {/* Email / password form */}
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                Email address
+              </label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                style={inputStyle}
+                onFocus={e => (e.currentTarget.style.borderColor = '#1B3A72')}
+                onBlur={e => (e.currentTarget.style.borderColor = '#E5E7EB')}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                Password
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                style={inputStyle}
+                onFocus={e => (e.currentTarget.style.borderColor = '#1B3A72')}
+                onBlur={e => (e.currentTarget.style.borderColor = '#E5E7EB')}
+              />
+            </div>
+
+            {error && (
+              <div style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#DC2626', marginBottom: 16 }}>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '13px 24px',
+                backgroundColor: loading ? '#9CA3AF' : '#1B3A72',
+                border: 'none',
+                borderRadius: 10,
+                fontSize: 15,
+                fontWeight: 600,
+                color: 'white',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'background 0.2s',
+                boxSizing: 'border-box',
+              }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.backgroundColor = '#162f5e'; }}
+              onMouseLeave={e => { if (!loading) e.currentTarget.style.backgroundColor = '#1B3A72'; }}
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+            <div style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
+            <span style={{ fontSize: 12, color: '#9CA3AF', whiteSpace: 'nowrap' }}>or continue with</span>
+            <div style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
+          </div>
+
+          {/* Google OAuth button */}
+          <a
+            href="http://localhost:8080/oauth2/authorization/google"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              width: '100%',
+              padding: '13px 24px',
+              backgroundColor: '#F47B20',
+              border: 'none',
+              borderRadius: 10,
+              fontSize: 15,
+              fontWeight: 600,
+              color: 'white',
+              textDecoration: 'none',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+              boxSizing: 'border-box',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#E06710')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#F47B20')}
+          >
+            <svg width="20" height="20" viewBox="0 0 48 48">
+              <path fill="white" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 5.1 29.6 3 24 3 12.9 3 4 11.9 4 23s8.9 20 20 20c11 0 20-8 20-20 0-1.3-.2-2.7-.5-4z" />
+            </svg>
+            Sign in with Google
+          </a>
+
+          {/* Register link */}
+          <p style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', margin: '20px 0 0' }}>
+            Don't have an account?{' '}
+            <Link to="/register" style={{ color: '#F47B20', fontWeight: 600, textDecoration: 'none' }}>
+              Create one
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
