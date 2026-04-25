@@ -2,10 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { loginUser } from '../api/authApi';
-
-const DecorativeShape = ({ style }) => (
-  <div style={{ position: 'absolute', borderRadius: '50%', opacity: 0.12, ...style }} />
-);
+import homeScreen from '../images/home-screen.png';
 
 const inputStyle = {
   width: '100%',
@@ -51,73 +48,100 @@ export default function LoginPage() {
   return (
     <div style={{ display: 'flex', height: '100vh', fontFamily: "'Inter', sans-serif" }}>
       {/* Left panel */}
-      <div
-        style={{
-          flex: '0 0 45%',
-          backgroundColor: '#1B3A72',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '48px 40px',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <DecorativeShape style={{ width: 320, height: 320, background: 'white', top: -60, right: -80 }} />
-        <DecorativeShape style={{ width: 200, height: 200, background: 'white', bottom: 40, left: -60 }} />
-        <DecorativeShape style={{ width: 120, height: 120, background: '#F47B20', top: '40%', right: -30 }} />
+      <div style={{
+        flex: '0 0 46%',
+        background: 'linear-gradient(150deg, #1d46a0 0%, #142f6e 100%)',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '40px 44px 0',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* ── Decorative layer ── */}
+        {/* Large circle outline — top right */}
+        <div style={{ position:'absolute', width:340, height:340, borderRadius:'50%', border:'1.5px solid rgba(255,255,255,0.1)', top:-90, right:-90 }} />
+        {/* Medium circle outline — inside large */}
+        <div style={{ position:'absolute', width:190, height:190, borderRadius:'50%', border:'1.5px solid rgba(255,255,255,0.08)', top:20, right:10 }} />
+        {/* Small filled orange circle */}
+        <div style={{ position:'absolute', width:52, height:52, borderRadius:'50%', backgroundColor:'rgba(244,123,32,0.3)', top:148, right:76 }} />
+        {/* Tiny white accent dots near orange circle */}
+        <div style={{ position:'absolute', width:10, height:10, borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.22)', top:118, right:58 }} />
+        <div style={{ position:'absolute', width:6,  height:6,  borderRadius:'50%', backgroundColor:'rgba(255,255,255,0.15)', top:208, right:46 }} />
+        {/* Dotted grid — top right */}
+        <svg style={{ position:'absolute', top:16, right:16, opacity:0.18 }} width="90" height="108">
+          {[0,1,2,3,4,5].map(row => [0,1,2,3,4].map(col => (
+            <circle key={`${row}-${col}`} cx={col*18+9} cy={row*18+9} r="2.5" fill="white" />
+          )))}
+        </svg>
+        {/* Circle outline — left mid */}
+        <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.07)', top:'42%', left:-60 }} />
+        {/* Small orange dot — lower right */}
+        <div style={{ position:'absolute', width:12, height:12, borderRadius:'50%', backgroundColor:'rgba(244,123,32,0.55)', bottom:'32%', right:40 }} />
+        {/* Cube outline — right mid (matches reference geometric) */}
+        <svg style={{ position:'absolute', bottom:'36%', right:28, opacity:0.13 }} width="44" height="50" viewBox="0 0 44 50">
+          <polygon points="22,2 42,13 42,37 22,48 2,37 2,13" fill="none" stroke="white" strokeWidth="1.5"/>
+          <line x1="22" y1="2"  x2="22" y2="26" stroke="white" strokeWidth="1" opacity="0.6"/>
+          <line x1="2"  y1="13" x2="22" y2="26" stroke="white" strokeWidth="1" opacity="0.6"/>
+          <line x1="42" y1="13" x2="22" y2="26" stroke="white" strokeWidth="1" opacity="0.6"/>
+        </svg>
+        {/* Second small dotted grid — lower left */}
+        <svg style={{ position:'absolute', bottom:220, left:28, opacity:0.1 }} width="54" height="54">
+          {[0,1,2].map(row => [0,1,2].map(col => (
+            <circle key={`b${row}-${col}`} cx={col*18+9} cy={row*18+9} r="2" fill="white" />
+          )))}
+        </svg>
 
+        {/* ── Content ── */}
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 48, zIndex: 1 }}>
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 10,
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <svg viewBox="0 0 40 40" fill="none" width="30" height="30">
+        <div style={{ display:'flex', alignItems:'center', gap:10, zIndex:1, marginBottom:32 }}>
+          <div style={{ width:40, height:40, borderRadius:10, backgroundColor:'rgba(255,255,255,0.15)',
+            display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <svg viewBox="0 0 40 40" fill="none" width="26" height="26">
               <path d="M20 8L6 15l14 7 14-7-14-7z" fill="white" />
               <path d="M13 19v6c0 2.5 3.1 4.5 7 4.5s7-2 7-4.5v-6l-7 3.5-7-3.5z" fill="rgba(255,255,255,0.8)" />
             </svg>
           </div>
-          <div style={{ color: 'white' }}>
-            <div style={{ fontWeight: 700, fontSize: 15, letterSpacing: 0.5 }}>smart</div>
-            <div style={{ fontWeight: 700, fontSize: 15, letterSpacing: 0.5 }}>campus</div>
-          </div>
+          <div style={{ color:'white', fontWeight:700, fontSize:14, letterSpacing:0.4 }}>smart campus</div>
         </div>
 
-        {/* Illustration */}
-        <div style={{ zIndex: 1, marginBottom: 40, width: '100%', maxWidth: 320, height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg viewBox="0 0 320 240" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%">
-            <rect x="80" y="170" width="160" height="18" rx="6" fill="#F47B20" />
-            <rect x="90" y="150" width="140" height="22" rx="6" fill="rgba(255,255,255,0.3)" />
-            <rect x="100" y="132" width="120" height="20" rx="6" fill="rgba(255,255,255,0.2)" />
-            <ellipse cx="160" cy="128" rx="22" ry="22" fill="rgba(255,255,255,0.25)" />
-            <circle cx="160" cy="108" r="16" fill="rgba(255,255,255,0.4)" />
-            <rect x="130" y="125" width="60" height="36" rx="4" fill="rgba(255,255,255,0.3)" />
-            <rect x="133" y="128" width="54" height="26" rx="2" fill="rgba(255,255,255,0.15)" />
-            <ellipse cx="60" cy="180" rx="20" ry="30" fill="rgba(255,255,255,0.1)" />
-            <ellipse cx="260" cy="185" rx="18" ry="25" fill="rgba(255,255,255,0.1)" />
-            <circle cx="245" cy="100" r="4" fill="rgba(255,255,255,0.3)" />
-            <circle cx="255" cy="115" r="3" fill="rgba(255,255,255,0.2)" />
-            <circle cx="70" cy="110" r="3" fill="rgba(255,255,255,0.3)" />
-            <circle cx="236" cy="75" r="12" fill="rgba(244,123,32,0.6)" />
-            <path d="M236 67v6M230 69l4 4M242 69l-4 4" stroke="white" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="75" cy="65" r="18" stroke="rgba(255,255,255,0.2)" strokeWidth="2" fill="none" />
-            <rect x="255" y="50" width="22" height="22" rx="3" stroke="rgba(255,255,255,0.2)" strokeWidth="2" fill="none" />
-            <line x1="95" y1="150" x2="100" y2="100" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
-          </svg>
+        {/* Headline */}
+        <h1 style={{ color:'white', fontSize:34, fontWeight:800, lineHeight:1.2,
+          margin:'0 0 10px', zIndex:1, maxWidth:310 }}>
+          Smart Campus
+        </h1>
+        <p style={{ color:'rgba(255,255,255,0.62)', fontSize:13.5, margin:'0 0 28px',
+          lineHeight:1.6, zIndex:1, maxWidth:290 }}>
+          The all-in-one university management platform for students and staff.
+        </p>
+
+        {/* Feature bullets */}
+        <div style={{ zIndex:1, display:'flex', flexDirection:'column', gap:10 }}>
+          {[
+            { icon:'🏛️', text:'Book campus rooms & resources' },
+            { icon:'🔔', text:'Real-time notifications & email alerts' },
+            { icon:'🎫', text:'Raise and track incident tickets' },
+          ].map(f => (
+            <div key={f.text} style={{ display:'flex', alignItems:'center', gap:10 }}>
+              <div style={{ width:28, height:28, borderRadius:7, backgroundColor:'rgba(255,255,255,0.12)',
+                display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, flexShrink:0 }}>
+                {f.icon}
+              </div>
+              <span style={{ color:'rgba(255,255,255,0.78)', fontSize:13 }}>{f.text}</span>
+            </div>
+          ))}
         </div>
 
-        <h2 style={{ color: 'white', fontSize: 26, fontWeight: 700, lineHeight: 1.3, margin: 0, textAlign: 'center', zIndex: 1, maxWidth: 320 }}>
-          Smart Campus — The All-in-One University Management Platform
-        </h2>
+        {/* Image — pinned to bottom, spans full panel width */}
+        <div style={{ flex:1, display:'flex', alignItems:'flex-end',
+          marginLeft:-44, marginRight:-44, marginTop:24, zIndex:1 }}>
+          <img
+            src={homeScreen}
+            alt="Smart Campus illustration"
+            style={{ width:'100%', display:'block',
+              filter:'drop-shadow(0 -4px 24px rgba(0,0,0,0.18))',
+              userSelect:'none', pointerEvents:'none' }}
+          />
+        </div>
       </div>
 
       {/* Right panel */}

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from './Sidebar';
 import NotificationBell from './NotificationBell';
 import { navItems, pageConfig } from '../navigation';
+import { getAllBookings } from '../api/bookingApi';
 
 function SubMenuPanel({ items, activeSubPath }) {
   const navigate = useNavigate();
@@ -184,6 +185,31 @@ function TopBar({ title, breadcrumb }) {
                 </div>
               </div>
               <button
+                onClick={() => { setDropdownOpen(false); navigate('/profile'); }}
+                style={{
+                  width: '100%',
+                  padding: '11px 16px',
+                  background: 'none',
+                  border: 'none',
+                  textAlign: 'left',
+                  fontSize: 14,
+                  color: '#374151',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  borderBottom: '1px solid #F3F4F6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F9FAFB')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+              >
+                <svg viewBox="0 0 24 24" fill="#6B7280" width="15" height="15">
+                  <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                </svg>
+                Notification Settings
+              </button>
+              <button
                 onClick={handleLogout}
                 style={{
                   width: '100%',
@@ -211,8 +237,24 @@ function TopBar({ title, breadcrumb }) {
 
 export default function Layout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [badges, setBadges] = useState({});
   const location = useLocation();
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (user?.role !== 'ADMIN') return;
+    const fetchBadges = () => {
+      getAllBookings()
+        .then(r => {
+          const pending = r.data.filter(b => b.status === 'PENDING').length;
+          setBadges(prev => ({ ...prev, bookings: pending }));
+        })
+        .catch(() => {});
+    };
+    fetchBadges();
+    const interval = setInterval(fetchBadges, 15000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const activeNavItem = navItems.find(
     item =>
@@ -228,7 +270,7 @@ export default function Layout() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', backgroundColor: '#F5F7FA', overflow: 'hidden' }}>
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} role={user?.role} />
+      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} role={user?.role} badges={badges} />
 
       {activeNavItem && !collapsed && (
         <SubMenuPanel

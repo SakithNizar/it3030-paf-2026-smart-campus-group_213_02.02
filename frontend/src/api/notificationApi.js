@@ -10,3 +10,6 @@ export const getMyNotifications = () => axios.get(`${BASE}/me`, authHeader());
 export const getUnreadCount = () => axios.get(`${BASE}/me/unread-count`, authHeader());
 export const markAsRead = (id) => axios.patch(`${BASE}/${id}/read`, {}, authHeader());
 export const markAllAsRead = () => axios.patch(`${BASE}/me/read-all`, {}, authHeader());
+export const clearAllNotifications = () => axios.delete(`${BASE}/me`, authHeader());
+export const getPreferences = () => axios.get(`${BASE}/preferences`, authHeader());
+export const savePreferences = (prefs) => axios.put(`${BASE}/preferences`, prefs, authHeader());

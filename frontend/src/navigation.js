@@ -42,4 +42,5 @@ export const pageConfig = {
   '/bookings':   { title: 'Bookings',          breadcrumb: ['Bookings'] },
   '/incidents':  { title: 'Incident Tickets',  breadcrumb: ['Incident Tickets'] },
   '/users':      { title: 'Users',             breadcrumb: ['Users'] },
+  '/profile':    { title: 'Profile & Settings', breadcrumb: ['Profile & Settings'] },
 };

@@ -14,6 +14,7 @@ import ResourceList from "./pages/ResourceList";
 import UserResourceView from "./pages/UserResourceView";
 import BookingsPage from "./pages/BookingsPage";
 import UsersPage from "./pages/UsersPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function PlaceholderPage({ title, description }) {
   return (
@@ -48,6 +49,7 @@ function App() {
               <Route path="/bookings"   element={<BookingsPage />} />
               <Route path="/incidents"  element={<PlaceholderPage title="Incident Tickets" description="Being implemented by another team member — check back soon." />} />
               <Route path="/users"      element={<UsersPage />} />
+              <Route path="/profile"    element={<ProfilePage />} />
             </Route>
           </Route>
 
