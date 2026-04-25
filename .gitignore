@@ -36,3 +36,4 @@ frontend/build
 
 # Env
 .env
+backend/src/main/resources/application.properties
