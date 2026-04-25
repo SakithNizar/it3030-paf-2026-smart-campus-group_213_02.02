@@ -5,6 +5,7 @@ import com.group213.backend.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,5 +44,30 @@ public class NotificationController {
         Long userId = (Long) auth.getPrincipal();
         notificationService.markAllAsRead(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    // DELETE /api/notifications/me
+    @Transactional
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> clearAll(Authentication auth) {
+        Long userId = (Long) auth.getPrincipal();
+        notificationService.clearAll(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // GET /api/notifications/preferences
+    @GetMapping("/preferences")
+    public ResponseEntity<Map<String, Boolean>> getPreferences(Authentication auth) {
+        Long userId = (Long) auth.getPrincipal();
+        return ResponseEntity.ok(notificationService.getPreferences(userId));
+    }
+
+    // PUT /api/notifications/preferences
+    @PutMapping("/preferences")
+    public ResponseEntity<Map<String, Boolean>> savePreferences(
+            Authentication auth,
+            @RequestBody Map<String, Boolean> updates) {
+        Long userId = (Long) auth.getPrincipal();
+        return ResponseEntity.ok(notificationService.savePreferences(userId, updates));
     }
 }

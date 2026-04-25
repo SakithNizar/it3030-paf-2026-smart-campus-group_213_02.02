@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -30,4 +33,11 @@ public class Resource {
 
     private String availableFrom;
     private String availableTo;
+
+    private String imageUrl;
+
+    @ElementCollection
+    @CollectionTable(name = "resource_tags", joinColumns = @JoinColumn(name = "resource_id"))
+    @Column(name = "tag")
+    private List<String> tags = new ArrayList<>();
 }

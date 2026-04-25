@@ -37,7 +37,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
-                .requestMatchers("/oauth2/**", "/login/**", "/api/auth/**").permitAll()
+                .requestMatchers("/oauth2/**", "/login/**", "/api/auth/**", "/uploads/**").permitAll()
                 // Anyone can browse resources
                 .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll()
                 // Admin-only resource management

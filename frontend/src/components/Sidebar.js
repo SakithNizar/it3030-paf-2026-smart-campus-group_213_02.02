@@ -49,7 +49,7 @@ const GradCapLogo = () => (
   </svg>
 );
 
-export default function Sidebar({ collapsed, onToggle, role }) {
+export default function Sidebar({ collapsed, onToggle, role, badges = {} }) {
   const location = useLocation();
   const navigate = useNavigate();
   const visibleItems = navItems.filter(item => !item.roles || item.roles.includes(role));
@@ -156,34 +156,26 @@ export default function Sidebar({ collapsed, onToggle, role }) {
             >
               <span style={{ flexShrink: 0 }}>{icons[item.icon]}</span>
               {!collapsed && (
-                <span style={{ fontSize: 14, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 14, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap', flex: 1 }}>
                   {item.label}
                 </span>
               )}
-              {item.badge && !collapsed && (
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    backgroundColor: '#EF4444',
-                    marginLeft: 'auto',
-                    flexShrink: 0,
-                  }}
-                />
+              {/* Live badge from parent */}
+              {badges[item.id] > 0 && !collapsed && (
+                <span style={{
+                  backgroundColor: '#EF4444', color: 'white',
+                  borderRadius: 20, fontSize: 10, fontWeight: 700,
+                  padding: '1px 6px', marginLeft: 'auto', flexShrink: 0,
+                }}>
+                  {badges[item.id]}
+                </span>
               )}
-              {item.badge && collapsed && (
-                <span
-                  style={{
-                    width: 7,
-                    height: 7,
-                    borderRadius: '50%',
-                    backgroundColor: '#EF4444',
-                    position: 'absolute',
-                    top: 8,
-                    right: 8,
-                  }}
-                />
+              {badges[item.id] > 0 && collapsed && (
+                <span style={{
+                  width: 8, height: 8, borderRadius: '50%',
+                  backgroundColor: '#EF4444',
+                  position: 'absolute', top: 8, right: 8,
+                }} />
               )}
             </div>
           );

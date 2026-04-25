@@ -2,8 +2,9 @@ package com.group213.backend.service;
 
 import com.group213.backend.model.Booking;
 import com.group213.backend.model.BookingStatus;
+import com.group213.backend.model.Role;
 import com.group213.backend.repository.BookingRepository;
-import com.group213.backend.service.NotificationService;
+import com.group213.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,9 @@ public class BookingService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private UserRepository userRepository;
+
     // 1. POST Logic: Check for conflicts before saving
     public Booking createBooking(Booking booking) {
         List<Booking> conflicts = bookingRepository.findConflictingBookings(
@@ -31,8 +35,21 @@ public class BookingService {
             throw new RuntimeException("Conflict: This resource is already booked for the selected time.");
         }
 
-        booking.setStatus(BookingStatus.PENDING); // Always start as PENDING
-        return bookingRepository.save(booking);
+        booking.setStatus(BookingStatus.PENDING);
+        Booking saved = bookingRepository.save(booking);
+
+        // Notify all admins (in-app only — email skipped for ADMIN role)
+        String adminMsg = "New booking request for Resource #" + saved.getResourceId() + " on " + saved.getBookingDate();
+        userRepository.findAll().stream()
+                .filter(u -> u.getRole() == Role.ADMIN)
+                .forEach(admin -> notificationService.create(admin.getId(), adminMsg, "BOOKING"));
+
+        // Confirm to the user who made the booking (triggers email to them)
+        String userMsg = "Your booking request for Resource #" + saved.getResourceId()
+                + " on " + saved.getBookingDate() + " has been submitted and is pending approval.";
+        notificationService.create(saved.getUserId(), userMsg, "BOOKING");
+
+        return saved;
     }
 
     // 2a. GET Logic: Fetch all bookings (admin)
@@ -69,6 +86,13 @@ public class BookingService {
 
     // 4. DELETE Logic: Cancel/remove a booking
     public void deleteBooking(Long id) {
+        bookingRepository.findById(id).ifPresent(booking -> {
+            String msg = "Booking #" + id + " for Resource #" + booking.getResourceId()
+                    + " on " + booking.getBookingDate() + " has been cancelled.";
+            userRepository.findAll().stream()
+                    .filter(u -> u.getRole() == Role.ADMIN)
+                    .forEach(admin -> notificationService.create(admin.getId(), msg, "BOOKING"));
+        });
         bookingRepository.deleteById(id);
     }
 }
