@@ -20,7 +20,6 @@ function StatusBadge({ status }) {
 }
 
 function AdminBookingsView() {
-  const { token } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [filter, setFilter] = useState('ALL');
   const [rejectModal, setRejectModal] = useState(null);
@@ -157,7 +156,7 @@ function AdminBookingsView() {
 }
 
 function UserBookingsView() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [resources, setResources] = useState([]);
   const [form, setForm] = useState({ resourceId: '', bookingDate: '', startTime: '', endTime: '', purpose: '', expectedAttendees: '' });
@@ -167,9 +166,9 @@ function UserBookingsView() {
 
   const loadBookings = () => getUserBookings(user.userId).then(r => setBookings(r.data)).catch(() => {});
   useEffect(() => {
-    loadBookings();
+    getUserBookings(user.userId).then(r => setBookings(r.data)).catch(() => {});
     getResources().then(r => setResources(r.data)).catch(() => {});
-  }, []);
+  }, [user.userId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
