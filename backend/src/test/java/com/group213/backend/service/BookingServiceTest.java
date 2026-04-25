@@ -3,6 +3,7 @@ package com.group213.backend.service;
 import com.group213.backend.model.Booking;
 import com.group213.backend.model.BookingStatus;
 import com.group213.backend.repository.BookingRepository;
+import com.group213.backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +26,12 @@ public class BookingServiceTest {
     @Mock
     private BookingRepository bookingRepository;
 
+    @Mock
+    private NotificationService notificationService;
+
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private BookingService bookingService;
 
@@ -46,6 +53,7 @@ public class BookingServiceTest {
         when(bookingRepository.findConflictingBookings(any(), any(), any(), any()))
                 .thenReturn(Collections.emptyList());
         when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+        when(userRepository.findAll()).thenReturn(Collections.emptyList());
 
         // Act: Try to create the booking
         Booking savedBooking = bookingService.createBooking(testBooking);
