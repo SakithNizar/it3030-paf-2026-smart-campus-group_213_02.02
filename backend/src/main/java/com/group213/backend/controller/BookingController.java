@@ -31,7 +31,13 @@ public class BookingController {
         }
     }
 
-    // 2. GET: Retrieve user bookings
+    // 2a. GET: Retrieve all bookings (admin)
+    @GetMapping
+    public ResponseEntity<List<Booking>> getAllBookings() {
+        return ResponseEntity.ok(bookingService.getAllBookings());
+    }
+
+    // 2b. GET: Retrieve bookings for a specific user
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Booking>> getUserBookings(@PathVariable Long userId) {
         return ResponseEntity.ok(bookingService.getUserBookings(userId));

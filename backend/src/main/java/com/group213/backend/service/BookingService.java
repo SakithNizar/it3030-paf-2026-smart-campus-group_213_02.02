@@ -35,7 +35,12 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
-    // 2. GET Logic: Fetch bookings for a specific user
+    // 2a. GET Logic: Fetch all bookings (admin)
+    public List<Booking> getAllBookings() {
+        return bookingRepository.findAll();
+    }
+
+    // 2b. GET Logic: Fetch bookings for a specific user
     public List<Booking> getUserBookings(Long userId) {
         return bookingRepository.findByUserId(userId);
     }

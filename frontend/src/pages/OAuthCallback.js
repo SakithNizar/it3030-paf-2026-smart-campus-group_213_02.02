@@ -11,12 +11,7 @@ export default function OAuthCallback() {
         const token = searchParams.get('token');
         if (token) {
             login(token);
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                navigate(payload.role === 'ADMIN' ? '/admin' : '/user', { replace: true });
-            } catch {
-                navigate('/user', { replace: true });
-            }
+            navigate('/dashboard', { replace: true });
         } else {
             navigate('/login', { replace: true });
         }
