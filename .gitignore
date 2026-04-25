@@ -35,5 +35,6 @@ frontend/build
 *.log
 
 # Env
-.env
 backend/src/main/resources/application.properties
+config.bat
+node_modules
