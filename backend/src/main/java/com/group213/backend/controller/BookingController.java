@@ -62,4 +62,16 @@ public class BookingController {
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
     }
+
+    // 5. PATCH: QR Code Check-in Endpoint
+    @PatchMapping("/{id}/check-in")
+    public ResponseEntity<?> checkInBooking(@PathVariable Long id) {
+        try {
+            Booking checkedInBooking = bookingService.checkInBooking(id);
+            return ResponseEntity.ok(checkedInBooking);
+        } catch (RuntimeException e) {
+            // This catches our "Only approved bookings" trap and returns the 409 error
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+    }
 }

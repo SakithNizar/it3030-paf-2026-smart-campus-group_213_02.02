@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { QRCodeCanvas } from 'qrcode.react'; // <-- The Magic QR Library
 
 export default function BookingManager() {
     const { user, token } = useAuth();
@@ -46,7 +47,7 @@ export default function BookingManager() {
         setSuccess('');
         setIsLoading(true);
 
-        // --- NEW: Time-Travel Validation ---
+        // --- Time-Travel Validation ---
         const selectedDate = new Date(formData.bookingDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Reset today's time to midnight for accurate date comparison
@@ -109,6 +110,17 @@ export default function BookingManager() {
         outline: 'none',
         transition: 'border-color 0.2s',
         backgroundColor: '#f8f9fa'
+    };
+
+    // Helper function to get badge colors based on the status
+    const getStatusStyles = (status) => {
+        switch(status) {
+            case 'PENDING': return { bg: '#fff3cd', text: '#856404' };
+            case 'APPROVED': return { bg: '#cce5ff', text: '#004085' };
+            case 'CHECKED_IN': return { bg: '#e6f4ea', text: '#1e8e3e' };
+            case 'REJECTED': return { bg: '#f8d7da', text: '#721c24' };
+            default: return { bg: '#e2e3e5', text: '#383d41' };
+        }
     };
 
     return (
@@ -193,27 +205,40 @@ export default function BookingManager() {
                     <p style={{ color: '#6c757d', textAlign: 'center', padding: '20px 0' }}>No bookings found. Create one above!</p>
                 ) : (
                     <ul style={{ listStyleType: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        {bookings.map((b) => (
-                            <li key={b.id} style={{ border: '1px solid #f0f0f0', padding: '16px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fafafa' }}>
-                                <div>
-                                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1a1a', marginBottom: '4px' }}>Resource {b.resourceId}</div>
-                                    <div style={{ fontSize: '14px', color: '#666' }}>{b.bookingDate} • {b.startTime} - {b.endTime}</div>
-                                </div>
-                                
-                                {/* Status Badge */}
-                                <div style={{
-                                    padding: '6px 12px',
-                                    borderRadius: '20px',
-                                    fontSize: '12px',
-                                    fontWeight: '700',
-                                    letterSpacing: '0.5px',
-                                    backgroundColor: b.status === 'PENDING' ? '#fff3cd' : '#e6f4ea',
-                                    color: b.status === 'PENDING' ? '#856404' : '#1e8e3e'
-                                }}>
-                                    {b.status}
-                                </div>
-                            </li>
-                        ))}
+                        {bookings.map((b) => {
+                            const styles = getStatusStyles(b.status);
+                            return (
+                                <li key={b.id} style={{ border: '1px solid #f0f0f0', padding: '16px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fafafa' }}>
+                                    <div>
+                                        <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1a1a', marginBottom: '4px' }}>Resource {b.resourceId}</div>
+                                        <div style={{ fontSize: '14px', color: '#666' }}>{b.bookingDate} • {b.startTime} - {b.endTime}</div>
+                                        <div style={{ fontSize: '13px', color: '#888', marginTop: '4px' }}>ID: {b.id}</div>
+                                    </div>
+                                    
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
+                                        {/* Status Badge */}
+                                        <div style={{
+                                            padding: '6px 12px',
+                                            borderRadius: '20px',
+                                            fontSize: '12px',
+                                            fontWeight: '700',
+                                            letterSpacing: '0.5px',
+                                            backgroundColor: styles.bg,
+                                            color: styles.text
+                                        }}>
+                                            {b.status}
+                                        </div>
+
+                                        {/* Show QR Code ONLY if Approved */}
+                                        {b.status === 'APPROVED' && (
+                                            <div style={{ padding: '4px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                                                <QRCodeCanvas value={`smart-campus-booking-${b.id}`} size={64} />
+                                            </div>
+                                        )}
+                                    </div>
+                                </li>
+                            );
+                        })}
                     </ul>
                 )}
             </div>

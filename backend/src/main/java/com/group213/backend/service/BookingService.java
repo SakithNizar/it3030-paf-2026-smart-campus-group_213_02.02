@@ -95,4 +95,22 @@ public class BookingService {
         });
         bookingRepository.deleteById(id);
     }
+
+    // 5. PATCH Logic: QR Code Check-in
+    public Booking checkInBooking(Long id) {
+        Booking existingBooking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        // Security Trap: You can't check in if the booking isn't approved!
+        if (existingBooking.getStatus() != BookingStatus.APPROVED) {
+            throw new RuntimeException("Conflict: Only approved bookings can be checked in.");
+        }
+
+        existingBooking.setStatus(BookingStatus.CHECKED_IN);
+        
+        // Optional: Send a notification that they successfully checked in
+        notificationService.create(existingBooking.getUserId(), "You have successfully checked in to your resource.", "CHECK_IN");
+
+        return bookingRepository.save(existingBooking);
+    }
 }
