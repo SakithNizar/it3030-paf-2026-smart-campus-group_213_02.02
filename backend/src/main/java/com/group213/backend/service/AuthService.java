@@ -34,7 +34,7 @@ public class AuthService {
         user.setRole(Role.USER);
 
         User saved = userRepository.save(user);
-        return jwtUtil.generateToken(saved.getId(), saved.getEmail(), saved.getRole().name());
+        return jwtUtil.generateToken(saved.getId(), saved.getEmail(), saved.getRole().name(), saved.getName());
     }
 
     public String login(LoginRequest req) {
@@ -49,6 +49,6 @@ public class AuthService {
             throw new RuntimeException("Invalid email or password.");
         }
 
-        return jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().name());
+        return jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().name(), user.getName());
     }
 }
