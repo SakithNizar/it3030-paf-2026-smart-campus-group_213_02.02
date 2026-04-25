@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { QRCodeCanvas } from 'qrcode.react'; // <-- The Magic QR Library
+import { QRCodeCanvas } from 'qrcode.react'; 
 
 export default function BookingManager() {
     const { user, token } = useAuth();
     const [bookings, setBookings] = useState([]);
+    const [resources, setResources] = useState([]); // <-- NEW: State to hold resources
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -17,6 +18,22 @@ export default function BookingManager() {
         purpose: '',
         expectedAttendees: ''
     });
+
+    // --- NEW: Fetch Resources for the Dropdown ---
+    const fetchResources = useCallback(async () => {
+        if (!token) return;
+        try {
+            const response = await fetch('http://localhost:8080/api/resources', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setResources(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch resources", err);
+        }
+    }, [token]);
 
     const fetchBookings = useCallback(async () => {
         if (!user) return;
@@ -33,9 +50,11 @@ export default function BookingManager() {
         }
     }, [user, token]);
 
+    // Load both resources and bookings when the page opens
     useEffect(() => {
+        fetchResources();
         fetchBookings();
-    }, [fetchBookings]);
+    }, [fetchResources, fetchBookings]);
 
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,10 +66,9 @@ export default function BookingManager() {
         setSuccess('');
         setIsLoading(true);
 
-        // --- Time-Travel Validation ---
         const selectedDate = new Date(formData.bookingDate);
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset today's time to midnight for accurate date comparison
+        today.setHours(0, 0, 0, 0); 
 
         if (selectedDate < today) {
             setError("You cannot book a resource in the past.");
@@ -63,7 +81,6 @@ export default function BookingManager() {
             setIsLoading(false);
             return;
         }
-        // ------------------------------------
 
         const payload = {
             ...formData,
@@ -99,7 +116,6 @@ export default function BookingManager() {
         }
     };
 
-    // Shared input style for consistency
     const inputStyle = {
         width: '100%',
         padding: '12px 15px',
@@ -112,7 +128,6 @@ export default function BookingManager() {
         backgroundColor: '#f8f9fa'
     };
 
-    // Helper function to get badge colors based on the status
     const getStatusStyles = (status) => {
         switch(status) {
             case 'PENDING': return { bg: '#fff3cd', text: '#856404' };
@@ -126,26 +141,36 @@ export default function BookingManager() {
     return (
         <div style={{ padding: '40px 20px', maxWidth: '700px', margin: '0 auto', fontFamily: "'Inter', '-apple-system', sans-serif", color: '#333' }}>
             
-            {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                 <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#1a1a1a', margin: '0 0 8px 0' }}>Booking Manager</h2>
                 <p style={{ color: '#6c757d', margin: 0, fontSize: '16px' }}>Reserve campus resources and manage your schedule</p>
             </div>
 
-            {/* Form Card */}
             <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', marginBottom: '40px' }}>
                 
-                {/* Notifications */}
                 {error && <div style={{ backgroundColor: '#fff1f0', color: '#d93025', padding: '12px', borderRadius: '8px', marginBottom: '20px', borderLeft: '4px solid #d93025' }}>{error}</div>}
                 {success && <div style={{ backgroundColor: '#e6f4ea', color: '#1e8e3e', padding: '12px', borderRadius: '8px', marginBottom: '20px', borderLeft: '4px solid #1e8e3e' }}>{success}</div>}
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     
-                    {/* Grid Layout for Date & Resource */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#4a4a4a' }}>Resource ID</label>
-                            <input type="number" name="resourceId" placeholder="e.g., 1" value={formData.resourceId} onChange={handleInputChange} required style={inputStyle} />
+                            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#4a4a4a' }}>Resource</label>
+                            {/* --- NEW: Dynamic Dropdown Menu --- */}
+                            <select 
+                                name="resourceId" 
+                                value={formData.resourceId} 
+                                onChange={handleInputChange} 
+                                required 
+                                style={inputStyle}
+                            >
+                                <option value="" disabled>✓ Select a resource...</option>
+                                {resources.map((res) => (
+                                    <option key={res.id} value={res.id}>
+                                        {res.name} (Type: {res.type})
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         <div>
                             <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#4a4a4a' }}>Date</label>
@@ -153,7 +178,6 @@ export default function BookingManager() {
                         </div>
                     </div>
 
-                    {/* Grid Layout for Times */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                         <div>
                             <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#4a4a4a' }}>Start Time</label>
@@ -197,7 +221,6 @@ export default function BookingManager() {
                 </form>
             </div>
 
-            {/* Bookings List */}
             <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
                 <h3 style={{ fontSize: '20px', margin: '0 0 20px 0', borderBottom: '2px solid #f0f0f0', paddingBottom: '10px' }}>Your Recent Bookings</h3>
                 
@@ -210,13 +233,12 @@ export default function BookingManager() {
                             return (
                                 <li key={b.id} style={{ border: '1px solid #f0f0f0', padding: '16px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fafafa' }}>
                                     <div>
-                                        <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1a1a', marginBottom: '4px' }}>Resource {b.resourceId}</div>
+                                        <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1a1a', marginBottom: '4px' }}>Resource ID: {b.resourceId}</div>
                                         <div style={{ fontSize: '14px', color: '#666' }}>{b.bookingDate} • {b.startTime} - {b.endTime}</div>
-                                        <div style={{ fontSize: '13px', color: '#888', marginTop: '4px' }}>ID: {b.id}</div>
+                                        <div style={{ fontSize: '13px', color: '#888', marginTop: '4px' }}>Booking #{b.id}</div>
                                     </div>
                                     
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
-                                        {/* Status Badge */}
                                         <div style={{
                                             padding: '6px 12px',
                                             borderRadius: '20px',
@@ -229,7 +251,6 @@ export default function BookingManager() {
                                             {b.status}
                                         </div>
 
-                                        {/* Show QR Code ONLY if Approved */}
                                         {b.status === 'APPROVED' && (
                                             <div style={{ padding: '4px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #ddd', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                                                 <QRCodeCanvas value={`smart-campus-booking-${b.id}`} size={64} />
