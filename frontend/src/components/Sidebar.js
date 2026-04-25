@@ -49,9 +49,10 @@ const GradCapLogo = () => (
   </svg>
 );
 
-export default function Sidebar({ collapsed, onToggle }) {
+export default function Sidebar({ collapsed, onToggle, role }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const visibleItems = navItems.filter(item => !item.roles || item.roles.includes(role));
 
   const isActive = (item) => {
     if (item.path === '/dashboard') return location.pathname === '/dashboard';
@@ -118,7 +119,7 @@ export default function Sidebar({ collapsed, onToggle }) {
 
       {/* Nav items */}
       <nav style={{ flex: 1, paddingBottom: 16 }}>
-        {navItems.map(item => {
+        {visibleItems.map(item => {
           const active = isActive(item);
           return (
             <div

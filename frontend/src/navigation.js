@@ -4,30 +4,35 @@ export const navItems = [
     path: '/dashboard',
     label: 'Dashboard',
     icon: 'dashboard',
+    roles: ['ADMIN', 'USER'],
   },
   {
     id: 'facilities',
     path: '/facilities',
     label: 'Facilities',
     icon: 'facilities',
+    roles: ['ADMIN', 'USER'],
   },
   {
     id: 'bookings',
     path: '/bookings',
     label: 'Bookings',
     icon: 'bookings',
+    roles: ['ADMIN', 'USER'],
   },
   {
     id: 'incidents',
     path: '/incidents',
     label: 'Incident Tickets',
     icon: 'incidents',
+    roles: ['ADMIN', 'USER'],
   },
   {
     id: 'users',
     path: '/users',
     label: 'Users',
     icon: 'users',
+    roles: ['ADMIN'],
   },
 ];
 

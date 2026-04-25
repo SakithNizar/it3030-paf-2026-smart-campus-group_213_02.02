@@ -212,6 +212,7 @@ function TopBar({ title, breadcrumb }) {
 export default function Layout() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
 
   const activeNavItem = navItems.find(
     item =>
@@ -227,7 +228,7 @@ export default function Layout() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', backgroundColor: '#F5F7FA', overflow: 'hidden' }}>
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
+      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} role={user?.role} />
 
       {activeNavItem && !collapsed && (
         <SubMenuPanel

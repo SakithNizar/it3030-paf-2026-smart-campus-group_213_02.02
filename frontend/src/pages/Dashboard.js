@@ -1,59 +1,23 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getResources } from '../api/resourceApi';
 import { getAllUsers } from '../api/authApi';
+import { getUserBookings, getAllBookings } from '../api/bookingApi';
 import { useAuth } from '../context/AuthContext';
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// ─── Shared primitives ────────────────────────────────────────────────────────
 
-const mockChartData = [
-  { tenan: 80, admin: 60, alumni: 120, mahasiswa: 140 },
-  { tenan: 100, admin: 80, alumni: 160, mahasiswa: 200 },
-  { tenan: 120, admin: 90, alumni: 200, mahasiswa: 280 },
-  { tenan: 160, admin: 110, alumni: 260, mahasiswa: 340 },
-  { tenan: 200, admin: 130, alumni: 320, mahasiswa: 400 },
-  { tenan: 240, admin: 160, alumni: 380, mahasiswa: 500 },
-  { tenan: 300, admin: 200, alumni: 460, mahasiswa: 620 },
-  { tenan: 380, admin: 240, alumni: 540, mahasiswa: 720 },
-  { tenan: 440, admin: 280, alumni: 600, mahasiswa: 820 },
-  { tenan: 500, admin: 320, alumni: 660, mahasiswa: 920 },
-  { tenan: 560, admin: 360, alumni: 720, mahasiswa: 1000 },
-  { tenan: 620, admin: 400, alumni: 800, mahasiswa: 1100 },
-];
-
-const CHART_COLORS = {
-  tenan: '#6366F1',
-  admin: '#EC4899',
-  alumni: '#3B82F6',
-  mahasiswa: '#F59E0B',
-};
-
-function StatCard({ icon, iconBg, label, value }) {
+function StatCard({ icon, iconBg, label, value, sub }) {
   return (
-    <div
-      style={{
-        backgroundColor: 'white',
-        borderRadius: 16,
-        padding: '22px 24px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 16,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-        flex: 1,
-        minWidth: 0,
-      }}
-    >
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: 12,
-          backgroundColor: iconBg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
+    <div style={{
+      backgroundColor: 'white', borderRadius: 16, padding: '22px 24px',
+      display: 'flex', alignItems: 'center', gap: 16,
+      boxShadow: '0 1px 4px rgba(0,0,0,0.06)', flex: 1, minWidth: 0,
+    }}>
+      <div style={{
+        width: 48, height: 48, borderRadius: 12, backgroundColor: iconBg,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      }}>
         {icon}
       </div>
       <div>
@@ -61,54 +25,63 @@ function StatCard({ icon, iconBg, label, value }) {
           {label}
         </div>
         <div style={{ fontSize: 26, fontWeight: 700, color: '#111827' }}>
-          {value !== null && value !== undefined ? value.toLocaleString() : '—'}
+          {value !== null && value !== undefined ? value : '—'}
         </div>
+        {sub && <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{sub}</div>}
       </div>
     </div>
   );
 }
 
-function StackedBarChart({ data }) {
-  const maxTotal = Math.max(...data.map(d => d.tenan + d.admin + d.alumni + d.mahasiswa));
+function DonutChart({ available, total }) {
+  const pct = total > 0 ? (available / total) * 100 : 0;
+  return (
+    <div style={{ position: 'relative', width: 120, height: 120, flexShrink: 0 }}>
+      <svg viewBox="0 0 36 36" width="120" height="120" style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="18" cy="18" r="14" fill="none" stroke="#BFDBFE" strokeWidth="7" />
+        <circle cx="18" cy="18" r="14" fill="none" stroke="#3B82F6" strokeWidth="7"
+          strokeDasharray={`${(pct / 100) * 88} 88`} strokeLinecap="round" />
+      </svg>
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{available}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Admin Dashboard ──────────────────────────────────────────────────────────
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const mockActivity = [
+  { bookings: 12, incidents: 3 }, { bookings: 18, incidents: 5 },
+  { bookings: 14, incidents: 2 }, { bookings: 22, incidents: 7 },
+  { bookings: 28, incidents: 4 }, { bookings: 35, incidents: 6 },
+  { bookings: 30, incidents: 8 }, { bookings: 40, incidents: 5 },
+  { bookings: 38, incidents: 3 }, { bookings: 45, incidents: 9 },
+  { bookings: 50, incidents: 6 }, { bookings: 55, incidents: 4 },
+];
+
+function ActivityChart() {
+  const maxVal = Math.max(...mockActivity.map(d => d.bookings + d.incidents));
   return (
     <div style={{ flex: 1 }}>
-      {/* Legend */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
-        {Object.entries(CHART_COLORS).map(([key, color]) => (
-          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+        {[['#3B82F6', 'Bookings'], ['#F47B20', 'Incidents']].map(([color, label]) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 10, height: 10, borderRadius: 3, backgroundColor: color }} />
-            <span style={{ fontSize: 12, color: '#6B7280', textTransform: 'capitalize' }}>{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+            <span style={{ fontSize: 12, color: '#6B7280' }}>{label}</span>
           </div>
         ))}
       </div>
-
-      {/* Bars */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', height: 200, gap: 6 }}>
-        {data.map((d, i) => {
-          const total = d.tenan + d.admin + d.alumni + d.mahasiswa;
-          const barH = (total / maxTotal) * 180;
+      <div style={{ display: 'flex', alignItems: 'flex-end', height: 180, gap: 6 }}>
+        {mockActivity.map((d, i) => {
+          const total = d.bookings + d.incidents;
+          const barH = (total / maxVal) * 160;
           return (
             <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div
-                style={{
-                  width: '100%',
-                  height: barH,
-                  borderRadius: '6px 6px 0 0',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column-reverse',
-                }}
-              >
-                {['mahasiswa', 'alumni', 'admin', 'tenan'].map(key => (
-                  <div
-                    key={key}
-                    style={{
-                      flex: d[key],
-                      backgroundColor: CHART_COLORS[key],
-                      minHeight: d[key] > 0 ? 2 : 0,
-                    }}
-                  />
-                ))}
+              <div style={{ width: '100%', height: barH, borderRadius: '4px 4px 0 0', overflow: 'hidden', display: 'flex', flexDirection: 'column-reverse' }}>
+                <div style={{ flex: d.bookings, backgroundColor: '#3B82F6', minHeight: 2 }} />
+                <div style={{ flex: d.incidents, backgroundColor: '#F47B20', minHeight: 2 }} />
               </div>
               <span style={{ fontSize: 10, color: '#9CA3AF', marginTop: 6 }}>{MONTHS[i]}</span>
             </div>
@@ -119,298 +92,272 @@ function StackedBarChart({ data }) {
   );
 }
 
-function DonutChart({ available, total }) {
-  const pct = total > 0 ? (available / total) * 100 : 0;
-  return (
-    <div style={{ position: 'relative', width: 130, height: 130, flexShrink: 0 }}>
-      <svg viewBox="0 0 36 36" width="130" height="130" style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx="18" cy="18" r="14" fill="none" stroke="#BFDBFE" strokeWidth="7" />
-        <circle
-          cx="18" cy="18" r="14"
-          fill="none"
-          stroke="#3B82F6"
-          strokeWidth="7"
-          strokeDasharray={`${(pct / 100) * 88} 88`}
-          strokeLinecap="round"
-        />
-      </svg>
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          textAlign: 'center',
-        }}
-      >
-        <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>{available}</div>
-      </div>
-    </div>
-  );
-}
+function AdminDashboard({ resources, users, bookings }) {
+  const available = resources.filter(r => r.status !== 'OUT_OF_SERVICE');
+  const pending = bookings.filter(b => b.status === 'PENDING');
+  const outOfService = resources.filter(r => r.status === 'OUT_OF_SERVICE');
 
-function Top5List({ items }) {
-  return (
-    <div>
-      {items.map((item, i) => (
-        <div
-          key={i}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            padding: '12px 0',
-            borderBottom: i < items.length - 1 ? '1px solid #F3F4F6' : 'none',
-          }}
-        >
-          <div
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: '50%',
-              backgroundColor: '#F3F4F6',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 12,
-              fontWeight: 700,
-              color: '#6B7280',
-              flexShrink: 0,
-            }}
-          >
-            {i + 1}
-          </div>
-          <div style={{ flex: 1, fontSize: 13, color: '#374151', fontWeight: 500 }}>{item.name}</div>
-          <div style={{ fontSize: 12, color: '#9CA3AF' }}>{item.count}x</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export default function Dashboard() {
-  const { user } = useAuth();
-  const [resources, setResources] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [top5Tab, setTop5Tab] = useState('Assets');
-  useEffect(() => {
-    const fetches = [getResources().then(r => setResources(r.data)).catch(() => {})];
-    if (user?.role === 'ADMIN') {
-      fetches.push(getAllUsers().then(r => setUsers(r.data)).catch(() => {}));
-    }
-    Promise.allSettled(fetches);
-  }, [user]);
-
-  const activeResources = resources.filter(r => r.status !== 'OUT_OF_SERVICE');
-  const unavailableResources = resources.length - activeResources.length;
-
-  const top5Resources = [...resources]
-    .slice(0, 5)
-    .map(r => ({ name: r.name, count: Math.floor(Math.random() * 900) + 100 }));
+  const topResources = [...resources].slice(0, 5).map(r => ({
+    name: r.name,
+    type: r.type,
+    count: Math.floor(Math.random() * 40) + 5,
+  }));
 
   return (
     <div>
       {/* Stat cards */}
       <div style={{ display: 'flex', gap: 20, marginBottom: 24, flexWrap: 'wrap' }}>
         <StatCard
-          icon={
-            <svg viewBox="0 0 24 24" fill="#3B82F6" width="24" height="24">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-            </svg>
-          }
-          iconBg="#EFF6FF"
-          label="Total User"
-          value={users.length || (user?.role === 'ADMIN' ? null : '—')}
+          icon={<svg viewBox="0 0 24 24" fill="#3B82F6" width="22" height="22"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>}
+          iconBg="#EFF6FF" label="Total Users" value={users.length}
         />
         <StatCard
-          icon={
-            <svg viewBox="0 0 24 24" fill="#0D9488" width="24" height="24">
-              <path d="M10 2h4c1.1 0 2 .9 2 2v2h4c1.1 0 2 .9 2 2v11c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V8c0-1.1.9-2 2-2h4V4c0-1.1.9-2 2-2zm0 2v2h4V4h-4zM4 8v11h16V8H4z" />
-            </svg>
-          }
-          iconBg="#F0FDF4"
-          label="Total Asset"
-          value={resources.length}
+          icon={<svg viewBox="0 0 24 24" fill="#0D9488" width="22" height="22"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>}
+          iconBg="#F0FDF4" label="Total Resources" value={resources.length}
+          sub={`${outOfService.length} out of service`}
         />
         <StatCard
-          icon={
-            <svg viewBox="0 0 24 24" fill="#7C3AED" width="24" height="24">
-              <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z" />
-            </svg>
-          }
-          iconBg="#F5F3FF"
-          label="Total Books"
-          value={1029}
+          icon={<svg viewBox="0 0 24 24" fill="#F47B20" width="22" height="22"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>}
+          iconBg="#FFF7ED" label="Pending Bookings" value={pending.length}
+          sub="Awaiting approval"
         />
         <StatCard
-          icon={
-            <svg viewBox="0 0 24 24" fill="#DB2777" width="24" height="24">
-              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z" />
-            </svg>
-          }
-          iconBg="#FDF2F8"
-          label="Total Project"
-          value={1029}
+          icon={<svg viewBox="0 0 24 24" fill="#7C3AED" width="22" height="22"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9H7v-2h5V9l4 4-4 4v-3z"/></svg>}
+          iconBg="#F5F3FF" label="Total Bookings" value={bookings.length}
         />
       </div>
 
-      {/* Middle section: chart + stats */}
-      <div
-        style={{
-          backgroundColor: 'white',
-          borderRadius: 16,
-          padding: '24px',
-          marginBottom: 24,
-          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-        }}
-      >
-        <h3 style={{ margin: '0 0 20px', fontSize: 16, fontWeight: 700, color: '#111827' }}>Smart User Data</h3>
-        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
-          {/* Left stats */}
-          <div style={{ minWidth: 160 }}>
-            {/* Filter pills */}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-              {['Year', 'Status', 'Gender', 'Faculty'].map(f => (
-                <button
-                  key={f}
-                  style={{
-                    padding: '5px 14px',
-                    borderRadius: 20,
-                    border: '1px solid #E5E7EB',
-                    backgroundColor: 'white',
-                    fontSize: 12,
-                    color: '#374151',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}
-                >
-                  {f}
-                  <svg viewBox="0 0 24 24" fill="#9CA3AF" width="14" height="14">
-                    <path d="M7 10l5 5 5-5z" />
-                  </svg>
-                </button>
-              ))}
-            </div>
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 2 }}>Total Faculties</div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: '#111827' }}>209</div>
-            </div>
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 2 }}>Total Department</div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: '#111827' }}>529</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 2 }}>Total Sub-Department</div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: '#111827' }}>1.029</div>
-            </div>
-          </div>
-
-          {/* Right: chart */}
-          <StackedBarChart data={mockChartData} />
-        </div>
+      {/* Activity chart */}
+      <div style={{ backgroundColor: 'white', borderRadius: 16, padding: 24, marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <h3 style={{ margin: '0 0 20px', fontSize: 16, fontWeight: 700, color: '#111827' }}>System Activity (This Year)</h3>
+        <ActivityChart />
       </div>
 
-      {/* Bottom section: Top 5 + Asset chart */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, flexWrap: 'wrap' }}>
-        {/* Top 5 */}
-        <div
-          style={{
-            backgroundColor: 'white',
-            borderRadius: 16,
-            padding: '24px',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>Top 5</h3>
-            <div style={{ display: 'flex', gap: 4, backgroundColor: '#F3F4F6', borderRadius: 8, padding: 3 }}>
-              {['Assets', 'Books/Journal', 'Project'].map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setTop5Tab(tab)}
-                  style={{
-                    padding: '5px 12px',
-                    borderRadius: 6,
-                    border: 'none',
-                    backgroundColor: top5Tab === tab ? '#111827' : 'transparent',
-                    color: top5Tab === tab ? 'white' : '#6B7280',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    transition: 'background 0.15s',
-                  }}
-                >
-                  {tab}
-                </button>
-              ))}
+      {/* Bottom: top resources + asset donut */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        {/* Top booked resources */}
+        <div style={{ backgroundColor: 'white', borderRadius: 16, padding: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <h3 style={{ margin: '0 0 16px', fontSize: 16, fontWeight: 700, color: '#111827' }}>Most Booked Resources</h3>
+          {topResources.length === 0 ? (
+            <p style={{ color: '#9CA3AF', fontSize: 13 }}>No resource data yet.</p>
+          ) : topResources.map((r, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '11px 0', borderBottom: i < topResources.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+              <div style={{ width: 26, height: 26, borderRadius: '50%', backgroundColor: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#6B7280', flexShrink: 0 }}>
+                {i + 1}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{r.name}</div>
+                <div style={{ fontSize: 11, color: '#9CA3AF' }}>{r.type}</div>
+              </div>
+              <div style={{ fontSize: 12, color: '#F47B20', fontWeight: 600 }}>{r.count} bookings</div>
             </div>
-          </div>
-          <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 12px' }}>
-            {top5Tab}
-          </p>
-          <Top5List
-            items={
-              top5Resources.length > 0
-                ? top5Resources
-                : [
-                    { name: 'The 9 habit of Effect Blogger in 2021 (Limited)', count: 1000 },
-                    { name: 'The 9 habit of Effect Blogger in 2021 (Limited)', count: 1000 },
-                    { name: 'The 9 habit of Effect Blogger in 2021 (Limited)', count: 1000 },
-                    { name: 'The 9 habit of Effect Blogger in 2021 (Limited)', count: 1000 },
-                    { name: 'The 9 habit of Effect Blogger in 2021 (Limited)', count: 1000 },
-                  ]
-            }
-          />
+          ))}
         </div>
 
-        {/* Asset chart + Project Berjalan */}
+        {/* Asset availability */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Asset donut */}
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: 16,
-              padding: '24px',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-            }}
-          >
-            <h3 style={{ margin: '0 0 16px', fontSize: 16, fontWeight: 700, color: '#111827' }}>Available Assets</h3>
+          <div style={{ backgroundColor: 'white', borderRadius: 16, padding: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 16, fontWeight: 700, color: '#111827' }}>Resource Availability</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-              <DonutChart available={activeResources.length} total={resources.length || 1} />
+              <DonutChart available={available.length} total={resources.length || 1} />
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                   <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#3B82F6' }} />
                   <span style={{ fontSize: 13, color: '#374151' }}>Available</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginLeft: 4 }}>{activeResources.length}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginLeft: 4 }}>{available.length}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#BFDBFE' }} />
-                  <span style={{ fontSize: 13, color: '#374151' }}>Unavailable</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginLeft: 4 }}>{unavailableResources}</span>
+                  <span style={{ fontSize: 13, color: '#374151' }}>Out of service</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginLeft: 4 }}>{outOfService.length}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Project Berjalan */}
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: 16,
-              padding: '24px',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-              flex: 1,
-            }}
-          >
-            <h3 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 700, color: '#111827' }}>Active Projects</h3>
-            <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>No active projects yet.</p>
+          <div style={{ backgroundColor: 'white', borderRadius: 16, padding: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', flex: 1 }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: '#111827' }}>Booking Summary</h3>
+            {[
+              { label: 'Approved', value: bookings.filter(b => b.status === 'APPROVED').length, color: '#16A34A' },
+              { label: 'Pending',  value: bookings.filter(b => b.status === 'PENDING').length,  color: '#CA8A04' },
+              { label: 'Rejected', value: bookings.filter(b => b.status === 'REJECTED').length, color: '#DC2626' },
+            ].map(row => (
+              <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #F3F4F6' }}>
+                <span style={{ fontSize: 13, color: '#374151' }}>{row.label}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: row.color }}>{row.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
     </div>
   );
+}
+
+// ─── User Dashboard ───────────────────────────────────────────────────────────
+
+function QuickActionCard({ label, description, color, onClick, icon }) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        backgroundColor: 'white', borderRadius: 16, padding: '20px 24px',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.06)', flex: 1, cursor: 'pointer',
+        borderTop: `4px solid ${color}`, transition: 'transform 0.15s, box-shadow 0.15s',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.1)'; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)'; }}
+    >
+      <div style={{ fontSize: 28, marginBottom: 10 }}>{icon}</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 13, color: '#6B7280' }}>{description}</div>
+    </div>
+  );
+}
+
+const STATUS_COLORS = {
+  PENDING:   { bg: '#FEF9C3', color: '#CA8A04' },
+  APPROVED:  { bg: '#DCFCE7', color: '#16A34A' },
+  REJECTED:  { bg: '#FEE2E2', color: '#DC2626' },
+  CANCELLED: { bg: '#F3F4F6', color: '#6B7280' },
+};
+
+function UserDashboard({ resources, bookings, navigate }) {
+  const available = resources.filter(r => r.status !== 'OUT_OF_SERVICE');
+  const myActive  = bookings.filter(b => b.status === 'APPROVED');
+  const myPending = bookings.filter(b => b.status === 'PENDING');
+  const recent    = [...bookings].reverse().slice(0, 5);
+
+  return (
+    <div>
+      {/* Stat cards */}
+      <div style={{ display: 'flex', gap: 20, marginBottom: 24, flexWrap: 'wrap' }}>
+        <StatCard
+          icon={<svg viewBox="0 0 24 24" fill="#0D9488" width="22" height="22"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>}
+          iconBg="#F0FDF4" label="Available Resources" value={available.length}
+          sub={`of ${resources.length} total`}
+        />
+        <StatCard
+          icon={<svg viewBox="0 0 24 24" fill="#16A34A" width="22" height="22"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>}
+          iconBg="#DCFCE7" label="Active Bookings" value={myActive.length}
+          sub="Approved"
+        />
+        <StatCard
+          icon={<svg viewBox="0 0 24 24" fill="#CA8A04" width="22" height="22"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>}
+          iconBg="#FEF9C3" label="Pending Requests" value={myPending.length}
+          sub="Awaiting approval"
+        />
+        <StatCard
+          icon={<svg viewBox="0 0 24 24" fill="#7C3AED" width="22" height="22"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9H7v-2h5V9l4 4-4 4v-3z"/></svg>}
+          iconBg="#F5F3FF" label="Total Bookings" value={bookings.length}
+        />
+      </div>
+
+      {/* Quick actions */}
+      <div style={{ marginBottom: 24 }}>
+        <h3 style={{ margin: '0 0 14px', fontSize: 16, fontWeight: 700, color: '#111827' }}>Quick Actions</h3>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          <QuickActionCard
+            icon="📅"
+            label="Book a Resource"
+            description="Reserve a room, lab, or equipment"
+            color="#F47B20"
+            onClick={() => navigate('/bookings')}
+          />
+          <QuickActionCard
+            icon="🏫"
+            label="Browse Facilities"
+            description="View available campus resources"
+            color="#3B82F6"
+            onClick={() => navigate('/facilities')}
+          />
+          <QuickActionCard
+            icon="🚨"
+            label="Report an Incident"
+            description="Submit a maintenance or safety issue"
+            color="#EF4444"
+            onClick={() => navigate('/incidents')}
+          />
+        </div>
+      </div>
+
+      {/* Recent bookings */}
+      <div style={{ backgroundColor: 'white', borderRadius: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+        <div style={{ padding: '18px 24px', borderBottom: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>My Recent Bookings</h3>
+          <button
+            onClick={() => navigate('/bookings')}
+            style={{ fontSize: 13, color: '#F47B20', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            View all →
+          </button>
+        </div>
+        {recent.length === 0 ? (
+          <p style={{ padding: '40px 24px', textAlign: 'center', color: '#9CA3AF', fontSize: 14, margin: 0 }}>
+            No bookings yet. Use the button above to make your first booking!
+          </p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#FAFAFA' }}>
+                {['Resource', 'Date', 'Time', 'Purpose', 'Status'].map(col => (
+                  <th key={col} style={{ padding: '11px 20px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#6B7280', borderBottom: '1px solid #F3F4F6' }}>
+                    {col}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {recent.map(b => {
+                const s = STATUS_COLORS[b.status] || STATUS_COLORS.PENDING;
+                return (
+                  <tr key={b.id} style={{ borderBottom: '1px solid #F9FAFB' }}
+                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#FAFAFA')}
+                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <td style={{ padding: '12px 20px', fontSize: 13, color: '#F47B20', fontWeight: 500 }}>Resource {b.resourceId}</td>
+                    <td style={{ padding: '12px 20px', fontSize: 13, color: '#374151' }}>{b.bookingDate}</td>
+                    <td style={{ padding: '12px 20px', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>{b.startTime} – {b.endTime}</td>
+                    <td style={{ padding: '12px 20px', fontSize: 13, color: '#374151', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.purpose}</td>
+                    <td style={{ padding: '12px 20px' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, backgroundColor: s.bg, color: s.color }}>
+                        {b.status}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main export ──────────────────────────────────────────────────────────────
+
+export default function Dashboard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const isAdmin = user?.role === 'ADMIN';
+
+  const [resources, setResources] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [bookings, setBookings] = useState([]);
+
+  useEffect(() => {
+    getResources().then(r => setResources(r.data)).catch(() => {});
+    if (isAdmin) {
+      getAllUsers().then(r => setUsers(r.data)).catch(() => {});
+      getAllBookings().then(r => setBookings(r.data)).catch(() => {});
+    } else {
+      getUserBookings(user.userId).then(r => setBookings(r.data)).catch(() => {});
+    }
+  }, [isAdmin, user.userId]);
+
+  if (isAdmin) {
+    return <AdminDashboard resources={resources} users={users} bookings={bookings} />;
+  }
+  return <UserDashboard resources={resources} bookings={bookings} navigate={navigate} />;
 }
